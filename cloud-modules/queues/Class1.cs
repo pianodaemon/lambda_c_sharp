@@ -13,7 +13,7 @@ public partial class Class1
 	private string _queueUrl;
 	private IAmazonSQS _sqsClient;
 
-	public Class1(string queueUrl, string secretKey, string accessKeyId) : this(queueUrl, new AmazonSQSClient())
+	public Class1(string queueUrl, string accessKeyId, string secretAccessKey) : this(queueUrl, new AmazonSQSClient(accessKeyId, secretAccessKey))
 	{
 
 	}
