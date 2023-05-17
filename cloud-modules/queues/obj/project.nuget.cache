@@ -1,9 +1,11 @@
 {
   "version": 2,
-  "dgSpecHash": "ZkTU+2kIR2Z1QzrCKq9v2QteYur1pxdNyxLcFBtvsA5mtsTPzXnZC6o2BbSqeIOGUJwppxL1d6lSwgBvzWtw7Q==",
+  "dgSpecHash": "e4mMrPdYYihTI/g5PB315nCFtFeZOaq3OlSaQZPQIX/t9+yL9iyphQZ68J4vd8G0cpoA3BQ6+9Or/AZfhR+h1A==",
   "success": true,
   "projectFilePath": "/home/pianodaemon/lambda_c_sharp/cloud-modules/queues/queues.csproj",
   "expectedPackageFiles": [
+    "/home/pianodaemon/.nuget/packages/awssdk.core/3.7.106.37/awssdk.core.3.7.106.37.nupkg.sha512",
+    "/home/pianodaemon/.nuget/packages/awssdk.sqs/3.7.102.5/awssdk.sqs.3.7.102.5.nupkg.sha512",
     "/home/pianodaemon/.nuget/packages/humanizer.core/2.14.1/humanizer.core.2.14.1.nupkg.sha512",
     "/home/pianodaemon/.nuget/packages/lombok.net/2.1.1/lombok.net.2.1.1.nupkg.sha512",
     "/home/pianodaemon/.nuget/packages/microsoft.bcl.asyncinterfaces/6.0.0/microsoft.bcl.asyncinterfaces.6.0.0.nupkg.sha512",

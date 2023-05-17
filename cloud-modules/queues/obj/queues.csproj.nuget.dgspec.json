@@ -38,6 +38,10 @@
         "net6.0": {
           "targetAlias": "net6.0",
           "dependencies": {
+            "AWSSDK.SQS": {
+              "target": "Package",
+              "version": "[3.7.102.5, )"
+            },
             "Lombok.NET": {
               "target": "Package",
               "version": "[2.1.1, )"

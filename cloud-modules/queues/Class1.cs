@@ -1,6 +1,8 @@
 using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
+using Amazon.SQS;
+using Amazon.SQS.Model;
 using Lombok.NET;
 
 namespace queues;
@@ -8,7 +10,13 @@ namespace queues;
 [AllArgsConstructor]
 public partial class Class1
 {
-	private string queueUrl;
+	private string _queueUrl;
+	private IAmazonSQS _sqsClient;
+
+	public Class1(string queueUrl, string secretKey, string accessKeyId) : this(queueUrl, new AmazonSQSClient())
+	{
+
+	}
 
 	public async Task<string> send(string msg)
 	{
@@ -16,7 +24,7 @@ public partial class Class1
 			Console.WriteLine("Hola {0}", obj);
 		};
 
-		Console.WriteLine(this.queueUrl);
+		Console.WriteLine(_queueUrl);
 		await Task.Factory.StartNew(action, "beta");
 		return "A message Identifier";
 	}
