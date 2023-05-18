@@ -18,17 +18,11 @@ public partial class Class1
 
 	}
 
-	public async Task<string> send(string msg)
+	public async Task<string> send(string messageBody)
 	{
-		Action<object> action = (object obj) => {
-			Console.WriteLine("Hola {0}", obj);
-		};
-
-		Console.WriteLine(_queueUrl);
-		await Task.Factory.StartNew(action, "beta");
-		return "A message Identifier";
+		SendMessageResponse responseSendMsg = await _sqsClient.SendMessageAsync(_queueUrl, messageBody);
+		return responseSendMsg.MessageId;
 	}
-
 
 	public async Task<string> receive(Action<string> onReceive)
 	{
