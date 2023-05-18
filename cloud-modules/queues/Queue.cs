@@ -38,13 +38,14 @@ public partial class Queue
 		{
 			throw new QueueException("No messages to receive yet", ErrorCodes.NO_MESSAGES_FOUND);
 		}
-
 		if (res.Messages.Count != NUMBER_OF_MESSAGES_REQUESTED)
 		{
 			throw new QueueException("It were received more messages than expected", ErrorCodes.UNKNOWN_FAILURE);
 		}
 
-		return res.Messages[NUMBER_OF_MESSAGES_REQUESTED - 1].ReceiptHandle;
+		int slot = NUMBER_OF_MESSAGES_REQUESTED - 1;
+		await Task.Run(() => onReceive.Invoke(res.Messages[slot].Body));
+		return res.Messages[slot].ReceiptHandle;
 	}
 
 	public async Task delete(string receipt)
