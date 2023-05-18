@@ -31,4 +31,9 @@ public partial class Class1
 
 		return "A message Identifier";
 	}
+
+	public async Task delete(string receipt)
+	{
+		await _sqsClient.DeleteMessageAsync(_queueUrl, receipt);
+	}
 }
