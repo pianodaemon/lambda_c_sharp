@@ -2,8 +2,9 @@ namespace queues;
 
 public enum ErrorCodes {
 
-    SUCCESS = 0,
-    UNKNOWN_FAILURE = -1
+    SUCCESS           =  0,
+    UNKNOWN_FAILURE   = -1,
+    NO_MESSAGES_FOUND = -2,
 }
 
 public class QueueException : Exception

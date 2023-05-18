@@ -10,6 +10,8 @@ namespace queues;
 [AllArgsConstructor]
 public partial class Class1
 {
+	private static int NUMBER_OF_MESSAGES_REQUESTED = 1;
+
 	private string _queueUrl;
 	private IAmazonSQS _sqsClient;
 
@@ -26,10 +28,24 @@ public partial class Class1
 
 	public async Task<string> receive(Action<string> onReceive)
 	{
-		string body = "this is the body";
-		await  Task.Run(() => onReceive.Invoke(body));
+		var req = new ReceiveMessageRequest
+        {
+            QueueUrl = _queueUrl,
+            MaxNumberOfMessages = NUMBER_OF_MESSAGES_REQUESTED,
+        };
 
-		return "A message Identifier";
+        var res = await _sqsClient.ReceiveMessageAsync(req);
+		if (res.Messages.Count == 0)
+		{
+			throw new QueueException("No messages to receive yet", ErrorCodes.NO_MESSAGES_FOUND);
+		}
+
+		if (res.Messages.Count != NUMBER_OF_MESSAGES_REQUESTED)
+		{
+			throw new QueueException("It were received more messages than expected", ErrorCodes.UNKNOWN_FAILURE);
+		}
+
+		return res.Messages[NUMBER_OF_MESSAGES_REQUESTED - 1].ReceiptHandle;
 	}
 
 	public async Task delete(string receipt)
