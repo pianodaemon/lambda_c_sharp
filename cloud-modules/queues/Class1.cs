@@ -33,7 +33,7 @@ public partial class Class1
 			MaxNumberOfMessages = NUMBER_OF_MESSAGES_REQUESTED,
 		};
 
-        var res = await _sqsClient.ReceiveMessageAsync(req);
+		var res = await _sqsClient.ReceiveMessageAsync(req);
 		if (res.Messages.Count == 0)
 		{
 			throw new QueueException("No messages to receive yet", ErrorCodes.NO_MESSAGES_FOUND);
