@@ -28,11 +28,10 @@ public partial class Class1
 
 	public async Task<string> receive(Action<string> onReceive)
 	{
-		var req = new ReceiveMessageRequest
-        {
-            QueueUrl = _queueUrl,
-            MaxNumberOfMessages = NUMBER_OF_MESSAGES_REQUESTED,
-        };
+		var req = new ReceiveMessageRequest {
+			QueueUrl = _queueUrl,
+			MaxNumberOfMessages = NUMBER_OF_MESSAGES_REQUESTED,
+		};
 
         var res = await _sqsClient.ReceiveMessageAsync(req);
 		if (res.Messages.Count == 0)
