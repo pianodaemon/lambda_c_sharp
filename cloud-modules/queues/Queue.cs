@@ -8,14 +8,14 @@ using Lombok.NET;
 namespace queues;
 
 [AllArgsConstructor]
-public partial class Class1
+public partial class Queue
 {
 	private static int NUMBER_OF_MESSAGES_REQUESTED = 1;
 
 	private string _queueUrl;
 	private IAmazonSQS _sqsClient;
 
-	public Class1(string queueUrl, string accessKeyId, string secretAccessKey) : this(queueUrl, new AmazonSQSClient(accessKeyId, secretAccessKey))
+	public Queue(string queueUrl, string accessKeyId, string secretAccessKey) : this(queueUrl, new AmazonSQSClient(accessKeyId, secretAccessKey))
 	{
 
 	}
