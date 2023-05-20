@@ -38,6 +38,7 @@ public partial class Queue
 		{
 			throw new QueueException("No messages to receive yet", ErrorCodes.NO_MESSAGES_FOUND);
 		}
+
 		if (res.Messages.Count != NUMBER_OF_MESSAGES_REQUESTED)
 		{
 			throw new QueueException("It were received more messages than expected", ErrorCodes.UNKNOWN_FAILURE);
