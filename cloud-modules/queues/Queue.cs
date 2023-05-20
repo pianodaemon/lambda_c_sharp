@@ -36,12 +36,12 @@ public partial class Queue
 		var res = await _sqsClient.ReceiveMessageAsync(req);
 		if (res.Messages.Count == 0)
 		{
-			throw new QueueException("No messages to receive yet", ErrorCodes.NO_MESSAGES_FOUND);
+			throw new CloudModuleException("No messages to receive yet", ErrorCodes.NO_MESSAGES_FOUND_IN_QUEUE);
 		}
 
 		if (res.Messages.Count != NUMBER_OF_MESSAGES_REQUESTED)
 		{
-			throw new QueueException("It were received more messages than expected", ErrorCodes.UNKNOWN_FAILURE);
+			throw new CloudModuleException("It were received more messages than expected", ErrorCodes.UNKNOWN_FAILURE);
 		}
 
 		int slot = NUMBER_OF_MESSAGES_REQUESTED - 1;
