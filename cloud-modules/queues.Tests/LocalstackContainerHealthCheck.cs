@@ -8,21 +8,21 @@ using System.Text.Json;
 namespace queues.Tests;
 public class LocalstackContainerHealthCheck : IWaitUntil
 {
-    private readonly string _readiness = "/_localstack/init/ready";
-    private readonly string _endpoint;
+    private readonly string _readinessEndPoint = "/_localstack/init/ready";
+    private readonly string _baseAddress;
 
-    public LocalstackContainerHealthCheck(string endpoint)
+    public LocalstackContainerHealthCheck(string baseAddress)
     {
-        _endpoint = endpoint;
+        _baseAddress = baseAddress;
     }
 
     public async Task<bool> UntilAsync(IContainer container)
     {
-        using var httpClient = new HttpClient { BaseAddress = new Uri(_endpoint) };
+        using var httpClient = new HttpClient { BaseAddress = new Uri(_baseAddress) };
         JsonNode? result;
         try
         {
-            result = await httpClient.GetFromJsonAsync<JsonNode>(_readiness);
+            result = await httpClient.GetFromJsonAsync<JsonNode>(_readinessEndPoint);
         }
         catch
         {
