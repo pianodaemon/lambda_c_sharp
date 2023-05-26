@@ -34,8 +34,8 @@ public class CustomTests
 
     private static async Task<bool> isQueuePresent(IAmazonSQS sqsClient, string queueName)
     {
-        var qurl = await sqsClient.GetQueueUrlAsync(queueName);
-        return qurl.QueueUrl.EndsWith(_testQ);
+        var res = await sqsClient.GetQueueUrlAsync(queueName);
+        return res.QueueUrl.EndsWith(_testQ);
     }
 
     private static async Task<bool> isAbscentOfQueues(IAmazonSQS sqsClient)
