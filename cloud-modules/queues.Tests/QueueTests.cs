@@ -5,7 +5,7 @@ using Amazon.SQS.Model;
 namespace queues.Tests;
 
 [Collection(nameof(LocalstackContainer))]
-public class QueuesTests
+public class QueueTests
 {
     private static readonly string SecretKey = "ignore";
     private static readonly string AccessKey = "ignore";
@@ -13,7 +13,7 @@ public class QueuesTests
     private string _localstackServiceUrl;
     private static AmazonSQSClient obtainSqsClient(string url) => new AmazonSQSClient(new BasicAWSCredentials(AccessKey, SecretKey), new AmazonSQSConfig { ServiceURL = url });
 
-    public QueuesTests(LocalstackContainer lsc)
+    public QueueTests(LocalstackContainer lsc)
     {
         _localstackServiceUrl = lsc.LocalstackUri;
     }
@@ -21,7 +21,7 @@ public class QueuesTests
     [Fact]
     public void should_detectPresenceOfTestQueue()
     {
-        var client = QueuesTests.obtainSqsClient(_localstackServiceUrl);
+        var client = QueueTests.obtainSqsClient(_localstackServiceUrl);
 
         var t0 = isAbscentOfQueues(client);
         t0.Wait();
