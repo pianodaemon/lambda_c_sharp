@@ -9,6 +9,7 @@ namespace queues;
 public partial class Queue
 {
 	private static int NUMBER_OF_MESSAGES_REQUESTED = 1;
+	private static int DELAY_SECS_TO_RECEIVE = 1;
 
 	private string _queueUrl;
 	private AmazonSQSClient _sqsClient;
@@ -29,7 +30,7 @@ public partial class Queue
 		var req = new ReceiveMessageRequest {
 			QueueUrl = _queueUrl,
 			MaxNumberOfMessages = NUMBER_OF_MESSAGES_REQUESTED,
-			WaitTimeSeconds = 1,
+			WaitTimeSeconds = DELAY_SECS_TO_RECEIVE,
 		};
 
 		var res = await _sqsClient.ReceiveMessageAsync(req);
