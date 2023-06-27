@@ -72,7 +72,7 @@ public partial class QueueJsonified<T> : Queue
 		return await send(JsonSerializer.Serialize(obj));
 	}
 
-	public async Task<string> receive(Action<T> onReceive)
+	public async Task<string> receiveAsJson(Action<T> onReceive)
 	{
 		Action<string> onReceiveWrapper = (payload) =>
 		{
