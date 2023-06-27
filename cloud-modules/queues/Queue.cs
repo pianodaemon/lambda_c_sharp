@@ -28,6 +28,7 @@ public partial class Queue
 		var req = new ReceiveMessageRequest {
 			QueueUrl = _queueUrl,
 			MaxNumberOfMessages = NUMBER_OF_MESSAGES_REQUESTED,
+			WaitTimeSeconds = 1,
 		};
 
 		var res = await _sqsClient.ReceiveMessageAsync(req);

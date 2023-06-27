@@ -19,7 +19,7 @@ public class QueueTests
     }
 
     [Fact]
-    public void should_detectPresenceOfTestQueue()
+    public void should_detectPresenceOfQueueforTest()
     {
         var client = QueueTests.obtainSqsClient(_localstackServiceUrl);
 
@@ -32,18 +32,62 @@ public class QueueTests
         Assert.True(t1.Result, $"Queue {_testQ} is not present");
     }
 
+
     [Fact]
-    public void should_sendAndReceive()
+    public void should_abideWithTheHighestExpectations()
     {
-         var q = obtainSteadyQueue4Test();
-         string msgBody = "Hello world";
-         var t1 = q.send(msgBody);
-         t1.Wait();
-         Action<string> actOnReceiveHandler = (payload) =>
-         {
-            Assert.True(msgBody.Equals(payload), $"How did we not receive what we sent ??");
-         };
-         q.receive(actOnReceiveHandler).Wait();
+        var q = obtainSteadyQueue4Test();
+
+        // Expecting purge mechanism function correctly
+        {
+            const short element2incept = 100;
+            Random rnd = new Random();
+            for (int j = 0; j < element2incept; j++)
+            {
+                var t1 = q.send(rnd.Next().ToString());
+                t1.Wait();
+            }
+            q.purge().Wait();
+        }
+
+        // Expecting to find nothing at the queue for test
+        {
+            Action<string> actOnReceiveHandler = (payload) =>
+            {
+                Assert.Fail("Why have we reached this execution point ??");
+            };
+
+            try
+            {
+                q.receive(actOnReceiveHandler).Wait();
+            }
+            catch (AggregateException ae)
+            {
+                ae.Handle((ex) =>
+                {
+                    if (ex is CloudModuleException) // This we know how to handle.
+                    {
+                        //It must be handled as expected
+                        return true;
+                    }
+                    return false;
+               });
+            }
+        }
+
+        // Expecting to move a meesage back and forth and deletion
+        {
+            string msgBody = "Welcome to the jungle";
+            var t0 = q.send(msgBody);
+            t0.Wait();
+            Action<string> actOnReceiveHandler = (payload) =>
+            {
+                Assert.True(msgBody.Equals(payload), "How did we not receive what we sent ??");
+            };
+            var t1 = q.receive(actOnReceiveHandler);
+            t1.Wait();
+            q.delete(t1.Result).Wait();
+        }
     }
 
     private Queue obtainSteadyQueue4Test()
