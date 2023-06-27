@@ -32,10 +32,37 @@ public class QueueTests
         Assert.True(t1.Result, $"Queue {_testQ} is not present");
     }
 
-    private static async Task<bool> isQueuePresent(IAmazonSQS sqsClient, string queueName)
+    [Fact]
+    public void should_sendAndReceive()
+    {
+         var q = obtainSteadyQueue4Test();
+         string msgBody = "Hello world";
+         var t1 = q.send(msgBody);
+         t1.Wait();
+         Action<string> actOnReceiveHandler = (payload) =>
+         {
+            Assert.True(msgBody.Equals(payload), $"How did we not receive what we sent ??");
+         };
+         q.receive(actOnReceiveHandler).Wait();
+    }
+
+    private Queue obtainSteadyQueue4Test()
+    {
+         var sqsClient = QueueTests.obtainSqsClient(_localstackServiceUrl);
+         var t0 = turnIntoQueueUrl(sqsClient, _testQ);
+         t0.Wait();
+         return new Queue(t0.Result, sqsClient);
+    }
+
+    private static async Task<string> turnIntoQueueUrl(IAmazonSQS sqsClient, string queueName)
     {
         var res = await sqsClient.GetQueueUrlAsync(queueName);
-        return res.QueueUrl.EndsWith(_testQ);
+        return res.QueueUrl;
+    }
+
+    private static async Task<bool> isQueuePresent(IAmazonSQS sqsClient, string queueName)
+    {
+        return turnIntoQueueUrl(sqsClient, queueName).Result.EndsWith(_testQ);
     }
 
     private static async Task<bool> isAbscentOfQueues(IAmazonSQS sqsClient)
