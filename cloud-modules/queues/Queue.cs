@@ -1,5 +1,6 @@
 using Amazon.SQS;
 using Amazon.SQS.Model;
+using System.Text.Json;
 using Lombok.NET;
 
 namespace queues;
@@ -55,5 +56,28 @@ public partial class Queue
 	public async Task purge()
 	{
 		PurgeQueueResponse res = await _sqsClient.PurgeQueueAsync(_queueUrl);
+	}
+}
+
+//[AllArgsConstructor]
+public partial class QueueJsonified<T> : Queue
+{
+	public QueueJsonified(string queueUrl, AmazonSQSClient sqsClient) : base(queueUrl, sqsClient)
+	{
+
+	}
+
+	public async Task<string> sendAsJson(T obj)
+	{
+		return await send(JsonSerializer.Serialize(obj));
+	}
+
+	public async Task<string> receive(Action<T> onReceive)
+	{
+		Action<string> onReceiveWrapper = (payload) =>
+		{
+			onReceive(JsonSerializer.Deserialize<T>(payload));
+		};
+		return await receive(onReceiveWrapper);
 	}
 }
