@@ -26,7 +26,6 @@ public class QueueTests
         var t0 = isAbscentOfQueues(client);
         t0.Wait();
         Assert.False(t0.Result, "No queues at all");
-
         var t1 = isQueuePresent(client, _testQ);
         t1.Wait();
         Assert.True(t1.Result, $"Queue {_testQ} is not present");
@@ -34,9 +33,9 @@ public class QueueTests
 
 
     [Fact]
-    public void should_abideWithTheHighestExpectations()
+    public void should_abideWithTheHigherExpectations()
     {
-        var q = obtainSteadyQueue4Test();
+        var q = obtainSteadyQueue4Test<TextPlainObj>(_localstackServiceUrl, _testQ);
 
         // Expecting purge mechanism function correctly
         {
@@ -75,7 +74,7 @@ public class QueueTests
             }
         }
 
-        // Expecting to move a meesage back and forth and deletion
+        // Expecting to move a message back and forth and deletion
         {
             string msgBody = "Welcome to the jungle";
             var t0 = q.send(msgBody);
@@ -90,12 +89,12 @@ public class QueueTests
         }
     }
 
-    private Queue obtainSteadyQueue4Test()
+    private static QueueJsonified<T> obtainSteadyQueue4Test<T>(string lss, string queueName)
     {
-         var sqsClient = QueueTests.obtainSqsClient(_localstackServiceUrl);
-         var t0 = turnIntoQueueUrl(sqsClient, _testQ);
+         var sqsClient = QueueTests.obtainSqsClient(lss);
+         var t0 = turnIntoQueueUrl(sqsClient, queueName);
          t0.Wait();
-         return new Queue(t0.Result, sqsClient);
+         return new QueueJsonified<T>(t0.Result, sqsClient);
     }
 
     private static async Task<string> turnIntoQueueUrl(IAmazonSQS sqsClient, string queueName)
@@ -106,7 +105,8 @@ public class QueueTests
 
     private static async Task<bool> isQueuePresent(IAmazonSQS sqsClient, string queueName)
     {
-        return turnIntoQueueUrl(sqsClient, queueName).Result.EndsWith(_testQ);
+        var res = await turnIntoQueueUrl(sqsClient, queueName);
+        return res.EndsWith(_testQ);
     }
 
     private static async Task<bool> isAbscentOfQueues(IAmazonSQS sqsClient)
@@ -118,4 +118,9 @@ public class QueueTests
         ListQueuesResponse responseList = await sqsClient.ListQueuesAsync(req);
         return responseList.QueueUrls.Count == 0;
     }
+}
+
+public class TextPlainObj
+{
+	private string text;
 }
