@@ -84,7 +84,8 @@ public class QueueTests
             {
                 Assert.True(obj.Equals(tpo), "How did we not receive what we sent ??");
             };
-            var t1 = q.receiveAsJson(actOnReceiveHandler);
+            const short delay2receive = 1;
+            var t1 = q.receiveAsJson(actOnReceiveHandler, delay2receive);
             t1.Wait();
             q.delete(t1.Result).Wait();
         }

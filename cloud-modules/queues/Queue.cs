@@ -75,12 +75,12 @@ public class QueueJsonified<T> : Queue
 		return await send(JsonSerializer.Serialize(obj));
 	}
 
-	public async Task<string> receiveAsJson(Action<T> onReceive)
+	public async Task<string> receiveAsJson(Action<T> onReceive, short delay = 0)
 	{
 		Action<string> onReceiveWrapper = (jsonMsg) =>
 		{
 			onReceive(JsonSerializer.Deserialize<T>(jsonMsg));
 		};
-		return await receive(onReceiveWrapper);
+		return await receive(onReceiveWrapper, delay);
 	}
 }
