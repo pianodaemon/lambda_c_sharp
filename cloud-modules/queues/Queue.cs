@@ -1,11 +1,9 @@
 using Amazon.SQS;
 using Amazon.SQS.Model;
 using System.Text.Json;
-using Lombok.NET;
 
 namespace queues;
 
-[AllArgsConstructor]
 public partial class Queue
 {
 	private static int NUMBER_OF_MESSAGES_REQUESTED = 1;
@@ -13,6 +11,12 @@ public partial class Queue
 
 	private string _queueUrl;
 	private AmazonSQSClient _sqsClient;
+
+	public Queue(string queueUrl, AmazonSQSClient sqsClient)
+	{
+		_queueUrl = queueUrl;
+		_sqsClient = sqsClient;
+	}
 
 	public Queue(string queueUrl, string accessKeyId, string secretAccessKey) : this(queueUrl, new AmazonSQSClient(accessKeyId, secretAccessKey))
 	{
