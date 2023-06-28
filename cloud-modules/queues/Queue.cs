@@ -4,20 +4,20 @@ using System.Text.Json;
 
 namespace CloudModules;
 
-public class Queue
+public class BasicQueue
 {
 	private static int NUMBER_OF_MESSAGES_REQUESTED = 1;
 
 	private string _queueUrl;
 	private AmazonSQSClient _sqsClient;
 
-	public Queue(string queueUrl, AmazonSQSClient sqsClient)
+	public BasicQueue(string queueUrl, AmazonSQSClient sqsClient)
 	{
 		_queueUrl = queueUrl;
 		_sqsClient = sqsClient;
 	}
 
-	public Queue(string queueUrl, string accessKeyId, string secretAccessKey) : this(queueUrl, new AmazonSQSClient(accessKeyId, secretAccessKey))
+	public BasicQueue(string queueUrl, string accessKeyId, string secretAccessKey) : this(queueUrl, new AmazonSQSClient(accessKeyId, secretAccessKey))
 	{
 
 	}
@@ -63,9 +63,9 @@ public class Queue
 	}
 }
 
-public class QueueJsonified<T> : Queue
+public class JsonifiedQueue<T> : BasicQueue, ICloudQueue<T>
 {
-	public QueueJsonified(string queueUrl, AmazonSQSClient sqsClient) : base(queueUrl, sqsClient)
+	public JsonifiedQueue(string queueUrl, AmazonSQSClient sqsClient) : base(queueUrl, sqsClient)
 	{
 
 	}

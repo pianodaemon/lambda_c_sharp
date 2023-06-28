@@ -35,7 +35,7 @@ public class QueueTests
     [Fact]
     public void should_abideWithTheHigherExpectations()
     {
-        var q = obtainSteadyQueue4Test<TextPlainObj>(_localstackServiceUrl, _testQ);
+        ICloudQueue<TextPlainObj> q = obtainSteadyQueue4Test<TextPlainObj>(_localstackServiceUrl, _testQ);
 
         // Expecting purge mechanism function correctly
         {
@@ -91,12 +91,12 @@ public class QueueTests
         }
     }
 
-    private static QueueJsonified<T> obtainSteadyQueue4Test<T>(string lss, string queueName)
+    private static JsonifiedQueue<T> obtainSteadyQueue4Test<T>(string lss, string queueName)
     {
          var sqsClient = QueueTests.obtainSqsClient(lss);
          var t0 = turnIntoQueueUrl(sqsClient, queueName);
          t0.Wait();
-         return new QueueJsonified<T>(t0.Result, sqsClient);
+         return new JsonifiedQueue<T>(t0.Result, sqsClient);
     }
 
     private static async Task<string> turnIntoQueueUrl(IAmazonSQS sqsClient, string queueName)
