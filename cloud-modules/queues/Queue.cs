@@ -60,7 +60,6 @@ public partial class Queue
 	}
 }
 
-//[AllArgsConstructor]
 public partial class QueueJsonified<T> : Queue
 {
 	public QueueJsonified(string queueUrl, AmazonSQSClient sqsClient) : base(queueUrl, sqsClient)
@@ -75,9 +74,9 @@ public partial class QueueJsonified<T> : Queue
 
 	public async Task<string> receiveAsJson(Action<T> onReceive)
 	{
-		Action<string> onReceiveWrapper = (payload) =>
+		Action<string> onReceiveWrapper = (jsonMsg) =>
 		{
-			onReceive(JsonSerializer.Deserialize<T>(payload));
+			onReceive(JsonSerializer.Deserialize<T>(jsonMsg));
 		};
 		return await receive(onReceiveWrapper);
 	}
