@@ -4,7 +4,7 @@ using System.Text.Json;
 
 namespace CloudModules;
 
-public class JsonifiedQueue <T>: BasicQueue, ICloudQueue<T>
+public class JsonifiedQueue<T>: BasicQueue, ICloudQueue<T>
 {
     public JsonifiedQueue(string queueUrl, AmazonSQSClient sqsClient): base(queueUrl, sqsClient)
     {
