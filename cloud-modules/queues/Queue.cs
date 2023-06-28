@@ -4,10 +4,9 @@ using System.Text.Json;
 
 namespace queues;
 
-public partial class Queue
+public class Queue
 {
 	private static int NUMBER_OF_MESSAGES_REQUESTED = 1;
-	private static int DELAY_SECS_TO_RECEIVE = 1;
 
 	private string _queueUrl;
 	private AmazonSQSClient _sqsClient;
@@ -29,12 +28,12 @@ public partial class Queue
 		return responseSendMsg.MessageId;
 	}
 
-	public async Task<string> receive(Action<string> onReceive)
+	public async Task<string> receive(Action<string> onReceive, short delay = 0)
 	{
 		var req = new ReceiveMessageRequest {
 			QueueUrl = _queueUrl,
 			MaxNumberOfMessages = NUMBER_OF_MESSAGES_REQUESTED,
-			WaitTimeSeconds = DELAY_SECS_TO_RECEIVE,
+			WaitTimeSeconds = delay,
 		};
 
 		var res = await _sqsClient.ReceiveMessageAsync(req);
@@ -64,7 +63,7 @@ public partial class Queue
 	}
 }
 
-public partial class QueueJsonified<T> : Queue
+public class QueueJsonified<T> : Queue
 {
 	public QueueJsonified(string queueUrl, AmazonSQSClient sqsClient) : base(queueUrl, sqsClient)
 	{
