@@ -1,4 +1,4 @@
-namespace queues;
+namespace CloudModules;
 
 public enum ErrorCodes {
 

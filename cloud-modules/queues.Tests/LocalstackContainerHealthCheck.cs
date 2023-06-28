@@ -5,7 +5,7 @@ using System.Net.Http.Json;
 using System.Text.Json.Serialization;
 using System.Text.Json;
 
-namespace queues.Tests;
+namespace CloudModules.Tests;
 public class LocalstackContainerHealthCheck : IWaitUntil
 {
     private readonly string _readinessEndPoint = "/_localstack/init/ready";

@@ -2,7 +2,7 @@ using Amazon.Runtime;
 using Amazon.SQS;
 using Amazon.SQS.Model;
 
-namespace queues.Tests;
+namespace CloudModules.Tests;
 
 [Collection(nameof(LocalstackContainer))]
 public class QueueTests

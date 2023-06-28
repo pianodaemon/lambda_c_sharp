@@ -2,7 +2,7 @@ using Amazon.SQS;
 using Amazon.SQS.Model;
 using System.Text.Json;
 
-namespace queues;
+namespace CloudModules;
 
 public class Queue
 {

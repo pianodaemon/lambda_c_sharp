@@ -2,7 +2,7 @@
 using DotNet.Testcontainers.Containers;
 using DotNet.Testcontainers.Configurations;
 
-namespace queues.Tests;
+namespace CloudModules.Tests;
 public class LocalstackContainer : IAsyncLifetime
 {
     private static readonly string _imageLabel = "localstack/localstack";
