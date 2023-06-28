@@ -33,4 +33,10 @@ public class Bucket : ICloudBucket
 
         var res = await _s3Client.PutObjectAsync(objRequest);
     }
+
+    public async Task<Stream> download(string fileName)
+    {
+        var res = await _s3Client.GetObjectAsync(_target, fileName);
+        return res.ResponseStream;
+    }
 }
