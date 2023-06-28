@@ -1,6 +1,7 @@
 namespace CloudModules;
 
-public interface ICloudQueue<T> {
+public interface ICloudQueue<T>
+{
   public Task <string> sendAsJson(T obj);
   public Task <string> receiveAsJson(Action <T> onReceive, short delay = 0);
   public Task delete(string receipt);
