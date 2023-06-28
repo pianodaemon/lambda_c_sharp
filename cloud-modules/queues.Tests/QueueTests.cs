@@ -76,14 +76,15 @@ public class QueueTests
 
         // Expecting to move a message back and forth and deletion
         {
-            string msgBody = "Welcome to the jungle";
-            var t0 = q.send(msgBody);
+            var obj = new TextPlainObj();
+            obj.Text = "Welcome to the jungle";
+            var t0 = q.sendAsJson(obj);
             t0.Wait();
-            Action<string> actOnReceiveHandler = (payload) =>
+            Action<TextPlainObj> actOnReceiveHandler = (tpo) =>
             {
-                Assert.True(msgBody.Equals(payload), "How did we not receive what we sent ??");
+                Assert.True(obj.Equals(tpo), "How did we not receive what we sent ??");
             };
-            var t1 = q.receive(actOnReceiveHandler);
+            var t1 = q.receiveAsJson(actOnReceiveHandler);
             t1.Wait();
             q.delete(t1.Result).Wait();
         }
@@ -122,5 +123,17 @@ public class QueueTests
 
 public class TextPlainObj
 {
-	private string text;
+	public string? Text { get; set; }
+
+    public override bool Equals(object obj)
+    {
+        var item = obj as TextPlainObj;
+
+        if (item == null)
+        {
+            return false;
+        }
+
+        return this.Text.Equals(item.Text);
+    }
 }
