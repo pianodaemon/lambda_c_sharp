@@ -5,17 +5,17 @@ using Amazon.S3.Transfer;
 
 namespace CloudModules;
 
-public class S3BucketStorage
+public class Bucket : ICloudBucket
 {
     IAmazonS3 _s3Client;
     string _target;
 
-    public S3BucketStorage(string target, string accessKeyId, string secretAccessKey) : this(target, new AmazonS3Client(accessKeyId, secretAccessKey))
+    public Bucket(string target, string accessKeyId, string secretAccessKey) : this(target, new AmazonS3Client(accessKeyId, secretAccessKey))
     {
 
     }
 
-    public S3BucketStorage(string target, IAmazonS3 s3Client)
+    public Bucket(string target, IAmazonS3 s3Client)
     {
         _s3Client = s3Client;
         _target = target;
