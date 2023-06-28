@@ -74,7 +74,7 @@ public class QueueTests
             }
         }
 
-        // Expecting to move a message back and forth and deletion
+        // Expecting to move a json message back and forth and deletion
         {
             var obj = new TextPlainObj();
             obj.Text = "Welcome to the jungle";
