@@ -7,8 +7,8 @@ namespace CloudModules;
 
 public class Bucket : ICloudBucket
 {
-    IAmazonS3 _s3Client;
-    string _target;
+    private IAmazonS3 _s3Client;
+    private readonly string _target;
 
     public Bucket(string target, string accessKeyId, string secretAccessKey) : this(target, new AmazonS3Client(accessKeyId, secretAccessKey))
     {
