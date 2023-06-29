@@ -23,7 +23,13 @@ public class JsonifiedQueue<T>: BasicQueue, ICloudQueue<T>
             {
                 throw new CloudModuleException("Json Message received is null", ErrorCodes.JSON_MESSAGE_IS_NULL);
             }
-            onReceive(JsonSerializer.Deserialize<T>(jsonMsg));
+
+            var obj = JsonSerializer.Deserialize<T>(jsonMsg);
+            if (obj is null)
+            {
+                throw new CloudModuleException("It seems the Json Message was not correctly deserialized", ErrorCodes.JSON_MESSAGE_WAS_NOT_DES);
+            }
+            onReceive(obj);
         };
         return await receive(onReceiveWrapper, delay);
     }
