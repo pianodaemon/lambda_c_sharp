@@ -78,14 +78,14 @@ public class QueueTests
         {
             var obj = new TextPlainObj();
             obj.Text = "Welcome to the jungle";
-            var t0 = q.sendAsJson(obj);
+            var t0 = q.sendObjectAsJson(obj);
             t0.Wait();
             Action<TextPlainObj> actOnReceiveHandler = (tpo) =>
             {
                 Assert.True(obj.Equals(tpo), "How did we not receive what we sent ??");
             };
             const short delay2receive = 1;
-            var t1 = q.receiveAsJson(actOnReceiveHandler, delay2receive);
+            var t1 = q.receiveJsonAsObject(actOnReceiveHandler, delay2receive);
             t1.Wait();
             q.delete(t1.Result).Wait();
         }
