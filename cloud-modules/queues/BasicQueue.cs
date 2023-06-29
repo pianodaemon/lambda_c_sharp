@@ -28,7 +28,7 @@ public class BasicQueue
         return responseSendMsg.MessageId;
     }
 
-    public async Task<string> receive(Action <string> onReceive, short delay)
+    public async Task<string> receive(Action<string> onReceive, short delay)
     {
         var req = new ReceiveMessageRequest {
             QueueUrl = _queueUrl,

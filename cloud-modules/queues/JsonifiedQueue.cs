@@ -16,7 +16,7 @@ public class JsonifiedQueue<T>: BasicQueue, ICloudQueue<T>
         return await send(JsonSerializer.Serialize(obj));
     }
 
-    public async Task<string> receiveAsJson(Action <T> onReceive, short delay)
+    public async Task<string> receiveAsJson(Action<T> onReceive, short delay)
     {
         Action<string> onReceiveWrapper = (jsonMsg) => {
             onReceive(JsonSerializer.Deserialize<T>(jsonMsg));

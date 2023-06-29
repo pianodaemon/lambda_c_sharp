@@ -126,15 +126,20 @@ public class TextPlainObj
 {
 	public string? Text { get; set; }
 
-    public override bool Equals(object obj)
+    public override bool Equals(object? obj)
     {
         var item = obj as TextPlainObj;
 
-        if (item == null)
+        if (item == null || this.Text == null)
         {
             return false;
         }
 
         return this.Text.Equals(item.Text);
+    }
+
+    public override int GetHashCode()
+    {
+        return this.Text != null ? this.Text.GetHashCode() : 0;
     }
 }
