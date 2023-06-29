@@ -5,6 +5,7 @@ public enum ErrorCodes {
     SUCCESS                    =  0,
     UNKNOWN_FAILURE            = -1,
     NO_MESSAGES_FOUND_IN_QUEUE = -1002,
+    BUCKET_IS_NOT_SET          = -1003,
 }
 
 public class CloudModuleException : Exception
