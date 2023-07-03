@@ -21,17 +21,20 @@ public class BucketTests
     }
 
     [Fact]
-    public void should_detectPresenceOfBucketforTest()
+    public void should_verifyBasicFunctionallity()
     {
         var client = BucketTests.obtainS3Client(_localstackServiceUrl);
         Assert.True(client is not null, "s3 client incorrectly set");
         var b = new Bucket(_testB, client);
         FileStream fs = new FileStream("/etc/services", FileMode.Open, FileAccess.Read);
-        b.upload("text/plain","services_copy.txt", fs);
-        using Stream streamToWriteTo = File.Open("/tmp/services_copy.txt", FileMode.Create);
-        var t0 = b.download("services_copy.txt");
+        b.upload("text/plain","/etc/services_copy.txt", fs);
+        var t0 = b.searchItems("etc/ser");
         t0.Wait();
-        CopyStream(t0.Result, streamToWriteTo);
+        Assert.True(t0.Result.Count() > 0, "No entries found after uploading file");
+        using Stream streamToWriteTo = File.Open("/tmp/services_copy.txt", FileMode.Create);
+        var t1 = b.download("/etc/services_copy.txt");
+        t1.Wait();
+        CopyStream(t1.Result, streamToWriteTo);
     }
 
     private static void CopyStream(Stream input, Stream output)
