@@ -59,7 +59,7 @@ public class Bucket : ICloudBucket
                 response = await _s3Client.ListObjectsV2Async(request);
 
                 response.S3Objects
-                        .ForEach(obj => itemsFound.AddLast($"{obj.Key,-35}"));
+                        .ForEach(obj => itemsFound.AddLast($"{obj.Key}"));
 
                 // If the response is truncated, set the request ContinuationToken
                 // from the NextContinuationToken property of the response.
@@ -68,7 +68,7 @@ public class Bucket : ICloudBucket
         }
         catch (AmazonS3Exception ex)
         {
-            Console.WriteLine($"Error encountered on server. Message:'{ex.Message}' getting list of objects.");
+            throw new CloudModuleException($"It is not possible to list the s3 objects.", ex, ErrorCodes.BUCKET_CANNOT_LIST_OBJECTS);
         }
 
         return itemsFound;
