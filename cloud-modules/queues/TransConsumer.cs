@@ -14,11 +14,12 @@ public class TransConsumer
         short consumptionCounter = 0;
         try
         {
-            for(;;++consumptionCounter)
+            for(;;)
             {
                 var t = q.receiveJsonAsObject(actOnReceiveHandler);
                 t.Wait();
                 q.delete(t.Result).Wait();
+                consumptionCounter++;
             }
         }
         catch (AggregateException ae)
