@@ -2,7 +2,7 @@ namespace CloudModules;
 
 public class TransConsumer
 {
-    public static async Task<List<R>> DoConsume<T, R>(Func<T, R> transHandler, ICloudQueue<T> q)
+    public static List<R> DoConsume<T, R>(Func<T, R> transHandler, ICloudQueue<T> q)
     {
         var productionList = new List<R>();
         Action<T> actOnReceiveHandler = (tpo) =>
@@ -14,9 +14,11 @@ public class TransConsumer
         short consumptionCounter = 0;
         try
         {
-            for(;;consumptionCounter++)
+            for(;;++consumptionCounter)
             {
-                await q.receiveJsonAsObject(actOnReceiveHandler);
+                var t = q.receiveJsonAsObject(actOnReceiveHandler);
+                t.Wait();
+                q.delete(t.Result).Wait();
             }
         }
         catch (AggregateException ae)
@@ -24,7 +26,7 @@ public class TransConsumer
             ae.Handle((ex) =>
             {
                 // This is what we expect to handle as
-		// the minimal consumption.
+                // the minimal consumption.
                 if ((ex is CloudModuleException) && (consumptionCounter > 0) &&
                    (((CloudModuleException) ex).ErrorCode == ErrorCodes.NO_MESSAGES_FOUND_IN_QUEUE))
                 {
