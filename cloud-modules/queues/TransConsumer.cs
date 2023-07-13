@@ -2,12 +2,12 @@ namespace CloudModules;
 
 public class TransConsumer
 {
-    public static List<R> DoConsume<T, R>(Func<T, R> transHandler, ICloudQueue<T> q)
+    public static List<R> DoConsume<T, R>(Func<T, R?> transHandler, ICloudQueue<T> q)
     {
         var productionList = new List<R>();
         Action<T> actOnReceiveHandler = (tpo) =>
         {
-            R elementTransformed = transHandler(tpo);
+            R? elementTransformed = transHandler(tpo);
             if (elementTransformed != null) productionList.Add(elementTransformed);
         };
 
