@@ -27,12 +27,12 @@ public class BucketTests
         Assert.True(client is not null, "s3 client incorrectly set");
         var b = new Bucket(_testB, client);
         FileStream fs = new FileStream("/etc/services", FileMode.Open, FileAccess.Read);
-        b.upload("text/plain","/etc/services_copy.txt", fs);
-        var t0 = b.searchItems("etc/ser");
+        b.Upload("text/plain","/etc/services_copy.txt", fs);
+        var t0 = b.SearchItems("etc/ser");
         t0.Wait();
         Assert.True(t0.Result.Count() > 0, "No entries found after uploading file");
         using Stream streamToWriteTo = File.Open("/tmp/services_copy.txt", FileMode.Create);
-        var t1 = b.download("/etc/services_copy.txt");
+        var t1 = b.Download("/etc/services_copy.txt");
         t1.Wait();
         CopyStream(t1.Result, streamToWriteTo);
     }

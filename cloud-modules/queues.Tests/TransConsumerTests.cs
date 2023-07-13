@@ -41,7 +41,7 @@ public class TransConsumerTests
         var obj = new PlainObjectMock();
         {
             obj.Text = "Be here now";
-            var t0 = q.sendObjectAsJson(obj);
+            var t0 = q.SendObjectAsJson(obj);
             t0.Wait();
         }
 

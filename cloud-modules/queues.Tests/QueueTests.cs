@@ -43,10 +43,10 @@ public class QueueTests
             Random rnd = new Random();
             for (int j = 0; j < element2incept; j++)
             {
-                var t1 = q.send(rnd.Next().ToString());
+                var t1 = q.Send(rnd.Next().ToString());
                 t1.Wait();
             }
-            q.purge().Wait();
+            q.Purge().Wait();
         }
 
         // Expecting to find nothing at the queue for test
@@ -58,7 +58,7 @@ public class QueueTests
 
             try
             {
-                q.receive(actOnReceiveHandler).Wait();
+                q.Receive(actOnReceiveHandler).Wait();
             }
             catch (AggregateException ae)
             {
@@ -78,16 +78,16 @@ public class QueueTests
         {
             var obj = new TextPlainObj();
             obj.Text = "Welcome to the jungle";
-            var t0 = q.sendObjectAsJson(obj);
+            var t0 = q.SendObjectAsJson(obj);
             t0.Wait();
             Action<TextPlainObj> actOnReceiveHandler = (tpo) =>
             {
                 Assert.True(obj.Equals(tpo), "How did we not receive what we sent ??");
             };
             const short delay2receive = 1;
-            var t1 = q.receiveJsonAsObject(actOnReceiveHandler, delay2receive);
+            var t1 = q.ReceiveJsonAsObject(actOnReceiveHandler, delay2receive);
             t1.Wait();
-            q.delete(t1.Result).Wait();
+            q.Delete(t1.Result).Wait();
         }
     }
 
@@ -124,7 +124,7 @@ public class QueueTests
 
 public class TextPlainObj
 {
-	public string? Text { get; set; }
+        public string? Text { get; set; }
 
     public override bool Equals(object? obj)
     {
