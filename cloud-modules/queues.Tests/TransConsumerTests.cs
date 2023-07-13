@@ -29,7 +29,7 @@ public class TransConsumerTests
     {
         var b = new Bucket(_testB, obtainS3Client(_localstackServiceUrl));
         FileStream fs = new FileStream("/etc/hosts", FileMode.Open, FileAccess.Read);
-        b.upload("text/plain","/etc/hosts_copy.txt", fs);
+        b.Upload("text/plain","/etc/hosts_copy.txt", fs);
 
         var tz = isQueuePresent(obtainSqsClient(_localstackServiceUrl), _testQ);
         tz.Wait();
@@ -40,7 +40,7 @@ public class TransConsumerTests
             var rmo = new ReturnMock();
             rmo.Text = tpo.BucketObjKey;
             using Stream streamToWriteTo = File.Open("/tmp/hosts_copy.txt", FileMode.Create);
-            var td = b.download("/etc/hosts_copy.txt");
+            var td = b.Download("/etc/hosts_copy.txt");
             td.Wait();
             CopyStream(td.Result, streamToWriteTo);
             return rmo;
@@ -52,7 +52,7 @@ public class TransConsumerTests
         var obj = new MetaMsg();
         {
             obj.BucketObjKey = "/etc/hosts_copy.txt";
-            var t0 = q.sendObjectAsJson(obj);
+            var t0 = q.SendObjectAsJson(obj);
             t0.Wait();
         }
 
