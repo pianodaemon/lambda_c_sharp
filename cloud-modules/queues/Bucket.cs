@@ -22,7 +22,7 @@ public class Bucket : ICloudBucket
         _target = target;
     }
 
-    public async Task upload(string cType, string fileName, Stream inputStream)
+    public async Task Upload(string cType, string fileName, Stream inputStream)
     {
         var objRequest = new PutObjectRequest()
         {
@@ -35,13 +35,13 @@ public class Bucket : ICloudBucket
         var res = await _s3Client.PutObjectAsync(objRequest);
     }
 
-    public async Task<Stream> download(string fileName)
+    public async Task<Stream> Download(string fileName)
     {
         var res = await _s3Client.GetObjectAsync(_target, fileName);
         return res.ResponseStream;
     }
 
-    public async Task<LinkedList<string>> searchItems(string sPattern)
+    public async Task<LinkedList<string>> SearchItems(string sPattern)
     {
         LinkedList<string> itemsFound = new LinkedList<string>();
 

@@ -4,7 +4,7 @@ namespace CloudModules;
 
 public interface ICloudBucket
 {
-    public Task upload(string cType, string fileName, Stream inputStream);
-    public Task<Stream> download(string fileName);
-    public Task<LinkedList<string>> searchItems(string sPattern);
+    public Task Upload(string cType, string fileName, Stream inputStream);
+    public Task<Stream> Download(string fileName);
+    public Task<LinkedList<string>> SearchItems(string sPattern);
 }
