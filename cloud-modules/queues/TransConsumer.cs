@@ -16,9 +16,9 @@ public class TransConsumer
         {
             for(;;)
             {
-                var t = q.receiveJsonAsObject(actOnReceiveHandler);
+                var t = q.ReceiveJsonAsObject(actOnReceiveHandler);
                 t.Wait();
-                q.delete(t.Result).Wait();
+                q.Delete(t.Result).Wait();
                 consumptionCounter++;
             }
         }

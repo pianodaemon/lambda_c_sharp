@@ -22,13 +22,13 @@ public class BasicQueue
 
     }
 
-    public async Task<string> send(string messageBody)
+    public async Task<string> Send(string messageBody)
     {
         SendMessageResponse responseSendMsg = await _sqsClient.SendMessageAsync(_queueUrl, messageBody);
         return responseSendMsg.MessageId;
     }
 
-    public async Task<string> receive(Action<string> onReceive, short delay)
+    public async Task<string> Receive(Action<string> onReceive, short delay)
     {
         var req = new ReceiveMessageRequest {
             QueueUrl = _queueUrl,
@@ -38,12 +38,12 @@ public class BasicQueue
 
         var res = await _sqsClient.ReceiveMessageAsync(req);
         if (res.Messages.Count == 0)
-       	{
+        {
             throw new CloudModuleException("No messages to receive yet", ErrorCodes.NO_MESSAGES_FOUND_IN_QUEUE);
         }
 
         if (res.Messages.Count != NUMBER_OF_MESSAGES_REQUESTED)
-       	{
+        {
             throw new CloudModuleException("It were received more messages than expected", ErrorCodes.UNKNOWN_FAILURE);
         }
 
@@ -52,12 +52,12 @@ public class BasicQueue
         return res.Messages[slot].ReceiptHandle;
     }
 
-    public async Task delete(string receipt)
+    public async Task Delete(string receipt)
     {
         await _sqsClient.DeleteMessageAsync(_queueUrl, receipt);
     }
 
-    public async Task purge()
+    public async Task Purge()
     {
         PurgeQueueResponse res = await _sqsClient.PurgeQueueAsync(_queueUrl);
     }

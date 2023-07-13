@@ -11,12 +11,12 @@ public class JsonifiedQueue<T>: BasicQueue, ICloudQueue<T>
 
     }
 
-    public async Task<string> sendObjectAsJson(T obj)
+    public async Task<string> SendObjectAsJson(T obj)
     {
-        return await send(JsonSerializer.Serialize(obj));
+        return await Send(JsonSerializer.Serialize(obj));
     }
 
-    public async Task<string> receiveJsonAsObject(Action<T> onReceive, short delay)
+    public async Task<string> ReceiveJsonAsObject(Action<T> onReceive, short delay)
     {
         Action<string> onReceiveWrapper = (jsonMsg) => {
             if (jsonMsg is null)
@@ -31,6 +31,6 @@ public class JsonifiedQueue<T>: BasicQueue, ICloudQueue<T>
             }
             onReceive(obj);
         };
-        return await receive(onReceiveWrapper, delay);
+        return await Receive(onReceiveWrapper, delay);
     }
 }
