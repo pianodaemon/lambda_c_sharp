@@ -7,8 +7,9 @@ public enum ErrorCodes {
     NO_MESSAGES_FOUND_IN_QUEUE = -1002,
     JSON_MESSAGE_IS_NULL       = -1003,
     JSON_MESSAGE_WAS_NOT_DES   = -1004,
-    BUCKET_IS_NOT_SET          = -1005,
-    BUCKET_CANNOT_LIST_OBJECTS = -1006,
+    BUCKET_IS_NOT_SET          = -2005,
+    BUCKET_CANNOT_LIST_OBJECTS = -2006,
+    SECRET_FAILURE_VAL_RES     = -3001
 }
 
 public class CloudModuleException : Exception
