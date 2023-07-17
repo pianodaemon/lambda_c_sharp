@@ -41,6 +41,9 @@
     <None Update="localstack\provisioning\scripts\test-transconsumer.sh">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
+    <None Update="localstack\provisioning\scripts\test-sm.sh">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
   </ItemGroup>
 
 </Project>
