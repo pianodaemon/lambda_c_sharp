@@ -24,9 +24,30 @@ public class SecretManagerTests
         var client = SecretManagerTests.obtainSMClient(_localstackServiceUrl);
         Assert.True(client is not null, "secret manager client incorrectly set");
 
-	ICloudSecretManager ism = new SecretManager(client);
-	var t0 = ism.FetchSecretStr(_testS);
-	t0.Wait();
-	Assert.True(t0.Result.Equals("bazinga"), "You do not really know Sheldon");
+        ICloudSecretManager ism = new SecretManager(client);
+        var t0 = ism.FetchSecretStr(_testS);
+        t0.Wait();
+        Assert.True(t0.Result.Equals("bazinga"), "You do not really know Sheldon");
+
+        // Expecting to no find the secret
+        {
+            try
+            {
+                ism.FetchSecretStr("nosecret").Wait();
+            }
+            catch (AggregateException ae)
+            {
+                ae.Handle((ex) =>
+                {
+                    if (ex is CloudModuleException) // This we know how to handle.
+                    {
+                        //It must be handled as expected
+                        return true;
+                    }
+                    return false;
+               });
+            }
+        }
+ 
     }
 }
