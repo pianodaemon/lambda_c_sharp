@@ -1,7 +1,6 @@
 using Amazon;
 using Amazon.SecretsManager;
 using Amazon.SecretsManager.Model;
-
 namespace CloudModules;
 
 public class SecretManager : ICloudSecretManager
@@ -18,10 +17,11 @@ public class SecretManager : ICloudSecretManager
        _smClient = smClient;
     }
 
-    public async Task<string> FetchSecretStr(string secretId)
+    public async Task<string> FetchSecretStr(string secretId, string version = "AWSCURRENT")
     {
         GetSecretValueRequest req = new();
         req.SecretId = secretId;
+        req.VersionStage = version;
 
         GetSecretValueResponse? response = null;
         try
