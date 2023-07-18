@@ -1,5 +1,7 @@
-﻿using System;
+using System;
 using System.Text;
+using Amazon.SecretsManager;
+using CloudModules;
 
 class SecretRequest
 {
@@ -17,7 +19,10 @@ class SecretRequest
 
     public static int consume(SecretRequest obj)
     {
-        Console.WriteLine(obj.SecretId);
+        ICloudSecretManager ism = SecretManagerHelper.InceptFromEnv();
+        var t0 = ism.FetchSecretStr(obj.SecretId);
+        t0.Wait();
+        Console.WriteLine(t0.Result);
         return 0;
     }
 }
