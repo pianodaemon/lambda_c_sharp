@@ -27,10 +27,10 @@ class SecretRequest
             t0.Wait();
             Console.WriteLine(t0.Result);
         }
-        catch (Exception ae)
+        catch (Exception ex)
         {
-            Console.WriteLine("ICloudSecretManager error:\n {0}", ae.Message);
-            Console.WriteLine("ICloudSecretManager all the exception-related info:\n {0}", ae.ToString());
+            Console.WriteLine("ICloudSecretManager error:\n {0}", ex.Message);
+            Console.WriteLine("ICloudSecretManager all the exception-related info:\n {0}", ex.ToString());
 
             // it stands for catching all for general errors
             return 1;

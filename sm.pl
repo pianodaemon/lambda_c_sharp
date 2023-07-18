@@ -25,7 +25,7 @@ use constant {
     CONSUME_APP => "cloud-modules/consumer-app/bin/Debug/net6.0/consumer-app",
 };
 
-sub fetch_secret_str {
+sub fetch_secret {
     my $buff_str = shift;
     open my $IN_DATA, "<", \$buff_str;
     my $out_buffer = &_wrap_execution(
@@ -34,11 +34,19 @@ sub fetch_secret_str {
         'bridge'   => "BRIDGE_SECRET_ID_REQ",
     );
     close $IN_DATA;
+
+    if ( ($? >> 8) > 0 ) {
+        my $emsg = sprintf "%s\n", $out_buffer;
+        print STDERR $emsg;
+        exit $? >> 8;
+    }
+
     return $out_buffer;
 }
 
 
-print fetch_secret_str "sheldon-cooper-saysx";
-if ( ($? >> 8) > 0 ) {
-    exit $? >> 8;
-}
+my $secret = fetch_secret "sheldon-cooper-saysx";
+print $secret;
+#if ( ($? >> 8) > 0 ) {
+#    exit $? >> 8;
+#}
