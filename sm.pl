@@ -35,7 +35,10 @@ sub fetch_secret {
     );
     close $IN_DATA;
 
-    if ( ($? >> 8) > 0 ) {
+    # It stands for the status returned by the last pipe close
+    # This is just the 16-bit status word returned
+    # by the traditional Unix wait() system call
+    if ( ($? >> 8) != 0 ) {
         my $emsg = sprintf "%s\n", $out_buffer;
         print STDERR $emsg;
         exit $? >> 8;
@@ -45,8 +48,5 @@ sub fetch_secret {
 }
 
 
-my $secret = fetch_secret "sheldon-cooper-saysx";
+my $secret = fetch_secret "sheldon-cooper-says";
 print $secret;
-#if ( ($? >> 8) > 0 ) {
-#    exit $? >> 8;
-#}

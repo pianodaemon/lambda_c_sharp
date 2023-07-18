@@ -5,11 +5,11 @@ using CloudModules;
 
 class SecretRequest
 {
-    public string SecretId { get; set; }
+    public string Buffer { get; set; }
 
     private SecretRequest(ref string buffer)
     {
-        SecretId = buffer;
+        Buffer = buffer;
     }
 
     public static SecretRequest parse(string buffer)
@@ -23,7 +23,7 @@ class SecretRequest
 
         try
         {
-            var t0 = ism.FetchSecretStr(obj.SecretId);
+            var t0 = ism.FetchSecretStr(obj.Buffer);
             t0.Wait();
             Console.WriteLine(t0.Result);
         }
