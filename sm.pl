@@ -21,6 +21,7 @@ sub _pipe_execution {
     }
 }
 
+
 sub _wrap_execution {
     my $buff_str = shift;
     my $consumer_app = shift;
@@ -51,15 +52,11 @@ sub _wrap_execution {
 }
 
 
-use constant {
-    CONSUME_APP => "cloud-modules/consumer-app/bin/Debug/net6.0/consumer-app",
-};
-
 sub fetch_secret {
     my $secret_id = shift;
     return &_wrap_execution(
         $secret_id,
-        CONSUME_APP,
+        $ENV{'CONSUME_APP'},
         "BRIDGE_SECRET_ID_REQ"
     );
 }
