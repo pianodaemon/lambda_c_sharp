@@ -38,4 +38,7 @@ sub fetch_secret_str {
 }
 
 
-print fetch_secret_str "sheldon-cooper-says"
+print fetch_secret_str "sheldon-cooper-saysx";
+if ( ($? >> 8) > 0 ) {
+    exit $? >> 8;
+}
