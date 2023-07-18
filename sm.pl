@@ -25,6 +25,11 @@ sub _wrap_execution {
     my $buff_str = shift;
     my $consumer_app = shift;
     my $consumer_bridge = shift;
+    unless ( -e $consumer_app ) {
+        my $emsg = sprintf "No presence of the consumer application %s\n", $consumer_app;
+        print STDERR $emsg;
+        exit 127;
+    }
     open my $IN_DATA, "<", \$buff_str;
     my $out_buffer = &_pipe_execution(
         *$IN_DATA,

@@ -17,11 +17,11 @@ public class SecretManager : ICloudSecretManager
        _smClient = smClient;
     }
 
-    public async Task<string> FetchSecretStr(string secretId, string version = "AWSCURRENT")
+    public async Task<string> FetchSecretStr(string secretId, string version = "")
     {
         GetSecretValueRequest req = new();
         req.SecretId = secretId;
-        req.VersionStage = version;
+        req.VersionStage = version.Length == 0 ? "AWSCURRENT" : version;
 
         GetSecretValueResponse? response = null;
         try
