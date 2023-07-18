@@ -1,6 +1,6 @@
 use strict;
 
-sub _wrap_execution {
+sub _pipe_execution {
     my $in_stream = shift;
     my %kvargs = @_;
     my $buff_str;
@@ -21,17 +21,15 @@ sub _wrap_execution {
     }
 }
 
-use constant {
-    CONSUME_APP => "cloud-modules/consumer-app/bin/Debug/net6.0/consumer-app",
-};
-
-sub fetch_secret {
+sub _wrap_execution {
     my $buff_str = shift;
+    my $consumer_app = shift;
+    my $consumer_bridge = shift;
     open my $IN_DATA, "<", \$buff_str;
-    my $out_buffer = &_wrap_execution(
+    my $out_buffer = &_pipe_execution(
         *$IN_DATA,
-        'consumer' => CONSUME_APP,
-        'bridge'   => "BRIDGE_SECRET_ID_REQ",
+        'consumer' => $consumer_app,
+        'bridge'   => $consumer_bridge,
     );
     close $IN_DATA;
 
@@ -47,6 +45,19 @@ sub fetch_secret {
     return $out_buffer;
 }
 
+
+use constant {
+    CONSUME_APP => "cloud-modules/consumer-app/bin/Debug/net6.0/consumer-app",
+};
+
+sub fetch_secret {
+    my $secret_id = shift;
+    return &_wrap_execution(
+        $secret_id,
+        CONSUME_APP,
+        "BRIDGE_SECRET_ID_REQ"
+    );
+}
 
 my $secret = fetch_secret "sheldon-cooper-says";
 print $secret;
