@@ -25,7 +25,7 @@ class SecretRequest
         {
             var t0 = ism.FetchSecretStr(obj.Buffer);
             t0.Wait();
-            Console.WriteLine(t0.Result);
+            Console.Write(t0.Result);
         }
         catch (Exception ex)
         {
