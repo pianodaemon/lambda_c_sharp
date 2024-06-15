@@ -16,18 +16,6 @@ class Program
 
         AmazonSQSClient sqsClient = new(RegionEndpoint.USEast1);
         AmazonS3Client s3Client = new(RegionEndpoint.USEast1);
-        Consumer consumer = Consumer.Create(queueUrl, sourceBucket, sqsClient, s3Client);
-        await StartConsuming(consumer, 5000);
-    }
-
-    static async Task StartConsuming(Consumer consumer, int delayMilliseconds)
-    {
-        while (true)
-        {
-            await consumer.ExtractMessages(MessageHelper.DecodeMessage, StorageHelper.SaveOnPersistence);
-
-            Console.WriteLine("Waiting for new messages...");
-            await Task.Delay(delayMilliseconds);
-        }
+        await Consumer.StartConsumingLoop(queueUrl, sourceBucket, sqsClient, s3Client, 5000);
     }
 }

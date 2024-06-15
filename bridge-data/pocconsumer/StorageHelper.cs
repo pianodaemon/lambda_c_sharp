@@ -8,7 +8,7 @@ using Amazon.S3.Model;
 
 public static class StorageHelper
 {
-    public static async Task SaveOnPersistence(AmazonS3Client s3Client, string sourceBucket, MessageHelper.BridgePartialData bridgePartialData)
+    public static async Task SaveOnPersistence(AmazonS3Client s3Client, string sourceBucket, BridgePartialData bridgePartialData)
     {
         try
         {
@@ -25,7 +25,7 @@ public static class StorageHelper
         }
     }
 
-    private static async Task Fetch(AmazonS3Client s3Client, string sourceBucket, MessageHelper.BridgePartialData bridgePartialData)
+    private static async Task Fetch(AmazonS3Client s3Client, string sourceBucket, BridgePartialData bridgePartialData)
     {
         try
         {

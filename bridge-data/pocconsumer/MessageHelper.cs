@@ -8,8 +8,6 @@ public static class MessageHelper
     public const string FileKeyField = "fileKey";
     public const string TargetPathField = "targetPath";
 
-    public static record struct BridgePartialData(string FileKey, string TargetPath);
-
     public static BridgePartialData DecodeMessage(string messageBody)
     {
         JObject json = JObject.Parse(messageBody);
