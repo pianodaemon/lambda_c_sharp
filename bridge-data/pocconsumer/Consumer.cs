@@ -64,21 +64,8 @@ public class Consumer
                     Console.WriteLine($"Message received: {message.Body}");
 
                     BridgePartialData bridgePartialData;
-                    try
-                    {
-                        bridgePartialData = messageBodyDecoder(message.Body);
-                        await fileSaver(s3Client, sourceBucket, bridgePartialData);
-                    }
-                    catch (ArgumentNullException ex)
-                    {
-                        Console.WriteLine($"Error decoding message body: {ex.Message}");
-                        continue;
-                    }
-                    catch (Exception ex)
-                    {
-                        Console.WriteLine($"Error processing message: {ex.Message}");
-                        throw;
-                    }
+                    bridgePartialData = messageBodyDecoder(message.Body);
+                    await fileSaver(s3Client, sourceBucket, bridgePartialData);
 
                     DeleteMessageRequest deleteMessageRequest = new()
                     {
