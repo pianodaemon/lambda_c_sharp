@@ -13,9 +13,7 @@ public static class StorageHelper
         try
         {
             ValidateTargetPath(bridgePartialData.TargetPath);
-
             Directory.CreateDirectory(Path.GetDirectoryName(bridgePartialData.TargetPath) ?? throw new InvalidOperationException("Target path is null or invalid."));
-
             await Fetch(s3Client, sourceBucket, bridgePartialData);
         }
         catch (Exception ex)
