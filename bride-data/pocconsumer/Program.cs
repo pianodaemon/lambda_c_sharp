@@ -68,11 +68,6 @@ public static class StorageHelper
 
     private static void ValidateTargetPath(string targetPath)
     {
-        if (string.IsNullOrEmpty(targetPath))
-        {
-            throw new ArgumentNullException(nameof(targetPath), "Target path (filename) is not specified.");
-        }
-
         if (File.Exists(targetPath))
         {
             throw new InvalidOperationException($"File {targetPath} already exists. Skipping download.");
