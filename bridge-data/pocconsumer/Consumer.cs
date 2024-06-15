@@ -44,7 +44,7 @@ public class Consumer
         await consumer.StartConsuming(delayMilliseconds);
     }
 
-    public async Task ExtractMessages(MessageBodyDecoder messageBodyDecoder, FileSaver fileSaver)
+    private async Task ExtractMessages(MessageBodyDecoder messageBodyDecoder, FileSaver fileSaver)
     {
         ReceiveMessageRequest receiveMessageRequest = new()
         {
@@ -88,11 +88,10 @@ public class Consumer
                     await sqsClient.DeleteMessageAsync(deleteMessageRequest);
                     Console.WriteLine("Message deleted from the queue.");
                 }
+                return;
             }
-            else
-            {
-                Console.WriteLine("No messages to process.");
-            }
+
+            Console.WriteLine("No messages to process.");
         }
         catch (Exception ex)
         {
