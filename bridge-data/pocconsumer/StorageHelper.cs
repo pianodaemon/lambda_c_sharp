@@ -2,6 +2,7 @@ namespace POCConsumer;
 
 using System;
 using System.IO;
+using System.Text.RegularExpressions;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using Amazon.S3;
@@ -58,5 +59,39 @@ public static class StorageHelper
 
             throw new InvalidOperationException($"File {targetPath} already exists. Skipping download.");
         }
+    }
+
+    private static void RenameFiles(string filename)
+    {
+        if (!File.Exists(filename))
+        {
+            return;
+        }
+
+        string prefix;
+        int digits;
+        var regex = new Regex(@"^(.+)\.(\d+)$");
+        var match = regex.Match(filename);
+
+        if (match.Success)
+        {
+            prefix = match.Groups[1].Value;
+            digits = int.Parse(match.Groups[2].Value);
+        }
+        else
+        {
+            prefix = filename;
+            digits = 0;
+        }
+
+        digits++;
+        string newname = $"{prefix}.{digits}";
+
+        if (File.Exists(newname))
+        {
+            RenameFiles(newname);
+        }
+
+        File.Move(filename, newname);
     }
 }
