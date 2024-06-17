@@ -1,6 +1,7 @@
 namespace POCConsumer;
 
 using System;
+using System.Collections.Generic;
 using System.Threading.Tasks;
 using Amazon.S3;
 using Amazon.SQS;
@@ -9,7 +10,7 @@ using Amazon.SQS.Model;
 public record BridgePartialData(string FileKey, string TargetPath);
 
 public delegate BridgePartialData MessageBodyDecoder(string messageBody);
-public delegate Task FileSaver(AmazonS3Client s3Client, string sourceBucket, BridgePartialData bridgePartialData);
+public delegate Task FileSaver(AmazonS3Client s3Client, string sourceBucket, HashSet<string> nonRestrictedDirs, BridgePartialData bridgePartialData);
 
 
 public class Consumer
@@ -18,13 +19,15 @@ public class Consumer
     private readonly string sourceBucket;
     private readonly AmazonSQSClient sqsClient;
     private readonly AmazonS3Client s3Client;
+    private readonly HashSet<string> nonRestrictedDirs;
 
-    private Consumer(string queueUrl, string sourceBucket, AmazonSQSClient sqsClient, AmazonS3Client s3Client)
+    private Consumer(string queueUrl, string sourceBucket, HashSet<string> nonRestrictedDirs, AmazonSQSClient sqsClient, AmazonS3Client s3Client)
     {
         this.queueUrl = queueUrl;
         this.sourceBucket = sourceBucket;
         this.sqsClient = sqsClient;
         this.s3Client = s3Client;
+        this.nonRestrictedDirs = nonRestrictedDirs;
     }
 
     private async Task StartConsuming(int delayMilliseconds)
@@ -38,9 +41,9 @@ public class Consumer
         }
     }
 
-    public static async Task StartConsumingLoop(string queueUrl, string sourceBucket, AmazonSQSClient sqsClient, AmazonS3Client s3Client, int delayMilliseconds)
+    public static async Task StartConsumingLoop(string queueUrl, string sourceBucket, HashSet<string> nonRestrictedDirs, AmazonSQSClient sqsClient, AmazonS3Client s3Client, int delayMilliseconds)
     {
-        var consumer = new Consumer(queueUrl, sourceBucket, sqsClient, s3Client);
+        Consumer consumer = new Consumer(queueUrl, sourceBucket, nonRestrictedDirs, sqsClient, s3Client);
         await consumer.StartConsuming(delayMilliseconds);
     }
 
@@ -65,7 +68,7 @@ public class Consumer
 
                     BridgePartialData bridgePartialData;
                     bridgePartialData = messageBodyDecoder(message.Body);
-                    await fileSaver(s3Client, sourceBucket, bridgePartialData);
+                    await fileSaver(s3Client, sourceBucket, nonRestrictedDirs, bridgePartialData);
 
                     DeleteMessageRequest deleteMessageRequest = new()
                     {
