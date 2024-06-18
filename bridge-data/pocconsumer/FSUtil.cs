@@ -2,7 +2,7 @@ namespace POCConsumer;
 
 using System.Text.RegularExpressions;
 
-class FSUtilHelper
+static class FSUtilHelper
 {
     private static void ValidateFilePath(string filePath)
     {
