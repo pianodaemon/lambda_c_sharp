@@ -9,22 +9,14 @@ using Amazon.S3.Model;
 
 public static class StorageHelper
 {
-    public static async Task SaveOnPersistence(AmazonS3Client s3Client, string sourceBucket, HashSet<string> nonRestrictedDirs, BridgePartialData bridgePartialData)
+    enum Strategy
     {
-        try
-        {
-            ValidateTargetPath(bridgePartialData.TargetPath, nonRestrictedDirs);
-            Directory.CreateDirectory(Path.GetDirectoryName(bridgePartialData.TargetPath) ?? throw new InvalidOperationException("Target path is null or invalid."));
-            await Fetch(s3Client, sourceBucket, bridgePartialData);
-        }
-        catch (Exception ex)
-        {
-            Console.WriteLine($"Error downloading or saving file: {ex.Message}");
-            throw;
-        }
+        CREATE,
+        OVERWRITE,
+        VERSIONATE
     }
 
-    private static async Task Fetch(AmazonS3Client s3Client, string sourceBucket, BridgePartialData bridgePartialData)
+    public static async Task SaveOnPersistence(AmazonS3Client s3Client, string sourceBucket, HashSet<string> nonRestrictedDirs, BridgePartialData bridgePartialData)
     {
         try
         {
@@ -34,31 +26,41 @@ public static class StorageHelper
                 Key = bridgePartialData.FileKey
             };
 
-	    string targetPath = $"{bridgePartialData.TargetPath}.download";
+            string targetPath = $"{bridgePartialData.TargetPath}.download";
+            Directory.CreateDirectory(Path.GetDirectoryName(targetPath) ?? throw new InvalidOperationException("Target path is null or invalid."));
             using GetObjectResponse response = await s3Client.GetObjectAsync(getObjectRequest);
             await response.WriteResponseStreamToFileAsync(targetPath, false, default);
-            FSUtilHelper.MoveFileUnique(targetPath, bridgePartialData.TargetPath);
+            switch(DetermineStrategy(bridgePartialData.TargetPath, nonRestrictedDirs))
+            {
+                case Strategy.CREATE:
+                case Strategy.OVERWRITE:
+                    File.Move(targetPath, bridgePartialData.TargetPath, true);
+                    break;
+                case Strategy.VERSIONATE:
+                    FSUtilHelper.MoveFileUnique(targetPath, bridgePartialData.TargetPath);
+                    break;
+            }
             Console.WriteLine($"File downloaded to {bridgePartialData.TargetPath}");
         }
         catch (Exception ex)
         {
-            Console.WriteLine($"Error downloading file from S3: {ex.Message}");
+            Console.WriteLine($"Error downloading or saving file: {ex.Message}");
             throw;
         }
     }
 
-    private static void ValidateTargetPath(string targetPath, HashSet<string> nonRestrictedDirs)
+    private static Strategy DetermineStrategy(string targetPath, HashSet<string> nonRestrictedDirs)
     {
-        if (File.Exists(targetPath))
-        {
-            string directory = Path.GetDirectoryName(targetPath) ?? throw new InvalidOperationException("Target path is null or invalid.");
-            if (nonRestrictedDirs != null && nonRestrictedDirs.Contains(directory))
-            {
-                Console.WriteLine($"File {targetPath} already exists in a permissible directory. Overwriting allowed.");
-                return;
-            }
+        if (!File.Exists(targetPath)) return Strategy.CREATE;
 
-            throw new InvalidOperationException($"File {targetPath} already exists. Skipping download.");
+        string directory = Path.GetDirectoryName(targetPath) ?? throw new InvalidOperationException("Target path is null or invalid.");
+        if (nonRestrictedDirs != null && nonRestrictedDirs.Contains(directory))
+        {
+            Console.WriteLine($"File {targetPath} already exists in a non-restricted directory. It'll be Overwritten.");
+            return Strategy.OVERWRITE;
         }
+
+        Console.WriteLine($"File {targetPath} already exists. It'll be versionated.");
+        return Strategy.VERSIONATE;
     }
 }
