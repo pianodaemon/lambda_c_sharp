@@ -11,9 +11,9 @@ public static class StorageHelper
 {
     enum Strategy
     {
-        CREATE,
-        OVERWRITE,
-        VERSIONATE
+        Create,
+        Overwrite,
+        Versionate
     }
 
     public static async Task SaveOnPersistence(AmazonS3Client s3Client, string sourceBucket, HashSet<string> nonRestrictedDirs, BridgePartialData bridgePartialData)
@@ -32,11 +32,11 @@ public static class StorageHelper
             await response.WriteResponseStreamToFileAsync(targetPath, false, default);
             switch(DetermineStrategy(bridgePartialData.TargetPath, nonRestrictedDirs))
             {
-                case Strategy.CREATE:
-                case Strategy.OVERWRITE:
+                case Strategy.Create:
+                case Strategy.Overwrite:
                     File.Move(targetPath, bridgePartialData.TargetPath, true);
                     break;
-                case Strategy.VERSIONATE:
+                case Strategy.Versionate:
                     FSUtilHelper.MoveFileUnique(targetPath, bridgePartialData.TargetPath);
                     break;
             }
@@ -51,16 +51,16 @@ public static class StorageHelper
 
     private static Strategy DetermineStrategy(string targetPath, HashSet<string> nonRestrictedDirs)
     {
-        if (!File.Exists(targetPath)) return Strategy.CREATE;
+        if (!File.Exists(targetPath)) return Strategy.Create;
 
         string directory = Path.GetDirectoryName(targetPath) ?? throw new InvalidOperationException("Target path is null or invalid.");
         if (nonRestrictedDirs != null && nonRestrictedDirs.Contains(directory))
         {
             Console.WriteLine($"File {targetPath} already exists in a non-restricted directory. It'll be Overwritten.");
-            return Strategy.OVERWRITE;
+            return Strategy.Overwrite;
         }
 
         Console.WriteLine($"File {targetPath} already exists. It'll be versionated.");
-        return Strategy.VERSIONATE;
+        return Strategy.Versionate;
     }
 }
