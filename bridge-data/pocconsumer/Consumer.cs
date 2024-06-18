@@ -30,21 +30,16 @@ public class Consumer
         this.nonRestrictedDirs = nonRestrictedDirs;
     }
 
-    private async Task StartConsuming(int delayMilliseconds)
+    public static async Task StartConsumingLoop(string queueUrl, string sourceBucket, HashSet<string> nonRestrictedDirs, AmazonSQSClient sqsClient, AmazonS3Client s3Client, int delayMilliseconds)
     {
+        Consumer consumer = new Consumer(queueUrl, sourceBucket, nonRestrictedDirs, sqsClient, s3Client);
         while (true)
         {
-            await ExtractMessages(MessageHelper.DecodeMessage, StorageHelper.SaveOnPersistence);
+            await consumer.ExtractMessages(MessageHelper.DecodeMessage, StorageHelper.SaveOnPersistence);
 
             Console.WriteLine("Waiting for new messages...");
             await Task.Delay(delayMilliseconds);
         }
-    }
-
-    public static async Task StartConsumingLoop(string queueUrl, string sourceBucket, HashSet<string> nonRestrictedDirs, AmazonSQSClient sqsClient, AmazonS3Client s3Client, int delayMilliseconds)
-    {
-        Consumer consumer = new Consumer(queueUrl, sourceBucket, nonRestrictedDirs, sqsClient, s3Client);
-        await consumer.StartConsuming(delayMilliseconds);
     }
 
     private async Task ExtractMessages(MessageBodyDecoder messageBodyDecoder, FileSaver fileSaver)
