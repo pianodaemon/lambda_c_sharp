@@ -19,7 +19,7 @@ static class FSUtilHelper
         if (File.Exists(sourcePath)) File.Move(sourcePath, destinationPath);
     }
 
-    public static void RenameFiles(string filePath)
+    private static void RenameFiles(string filePath)
     {
         ValidateFilePath(filePath);
 
