@@ -9,7 +9,7 @@ using Amazon.S3.Model;
 
 public static class StorageHelper
 {
-    enum Strategy
+    private enum Strategy
     {
         Create,
         Overwrite,
@@ -20,26 +20,14 @@ public static class StorageHelper
     {
         try
         {
-            GetObjectRequest getObjectRequest = new()
-            {
-                BucketName = sourceBucket,
-                Key = bridgePartialData.FileKey
-            };
-
             string targetPathDownload = $"{bridgePartialData.TargetPath}.download";
             Directory.CreateDirectory(Path.GetDirectoryName(targetPathDownload) ?? throw new InvalidOperationException("Target path is null or invalid."));
-            using GetObjectResponse response = await s3Client.GetObjectAsync(getObjectRequest);
-            await response.WriteResponseStreamToFileAsync(targetPathDownload, false, default);
-            switch(DetermineStrategy(bridgePartialData.TargetPath, nonRestrictedDirs))
-            {
-                case Strategy.Create:
-                case Strategy.Overwrite:
-                    File.Move(targetPathDownload, bridgePartialData.TargetPath, true);
-                    break;
-                case Strategy.Versionate:
-                    FSUtilHelper.MoveFileUnique(targetPathDownload, bridgePartialData.TargetPath);
-                    break;
-            }
+
+            await DownloadFileAsync(s3Client, sourceBucket, bridgePartialData.FileKey, targetPathDownload);
+
+            var strategy = DetermineStrategy(bridgePartialData.TargetPath, nonRestrictedDirs);
+            ApplyStrategy(targetPathDownload, bridgePartialData.TargetPath, strategy);
+
             Console.WriteLine($"File downloaded to {bridgePartialData.TargetPath}");
         }
         catch (Exception ex)
@@ -49,18 +37,34 @@ public static class StorageHelper
         }
     }
 
+    private static async Task DownloadFileAsync(AmazonS3Client s3Client, string bucketName, string key, string downloadPath)
+    {
+        var getObjectRequest = new GetObjectRequest { BucketName = bucketName, Key = key };
+        using var response = await s3Client.GetObjectAsync(getObjectRequest);
+        await response.WriteResponseStreamToFileAsync(downloadPath, false, default);
+    }
+
+    private static void ApplyStrategy(string sourcePath, string targetPath, Strategy strategy)
+    {
+        switch (strategy)
+        {
+            case Strategy.Create:
+            case Strategy.Overwrite:
+                File.Move(sourcePath, targetPath, true);
+                break;
+            case Strategy.Versionate:
+                FSUtilHelper.MoveFileUnique(sourcePath, targetPath);
+                break;
+        }
+    }
+
     private static Strategy DetermineStrategy(string targetPath, HashSet<string> nonRestrictedDirs)
     {
         if (!File.Exists(targetPath)) return Strategy.Create;
 
         string directory = Path.GetDirectoryName(targetPath) ?? throw new InvalidOperationException("Target path is null or invalid.");
-        if (nonRestrictedDirs != null && nonRestrictedDirs.Contains(directory))
-        {
-            Console.WriteLine($"File {targetPath} already exists in a non-restricted directory. It'll be Overwritten.");
-            return Strategy.Overwrite;
-        }
-
-        Console.WriteLine($"File {targetPath} already exists. It'll be versionated.");
-        return Strategy.Versionate;
+        return nonRestrictedDirs != null && nonRestrictedDirs.Contains(directory)
+            ? Strategy.Overwrite
+            : Strategy.Versionate;
     }
 }
