@@ -14,7 +14,6 @@ static class FSUtilHelper
 
     public static void MoveFileUnique(string sourcePath, string destinationPath)
     {
-        ValidateFilePath(sourcePath);
         RenameFiles(destinationPath);
         if (File.Exists(sourcePath)) File.Move(sourcePath, destinationPath);
     }
