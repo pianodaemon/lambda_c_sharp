@@ -34,8 +34,10 @@ public static class StorageHelper
                 Key = bridgePartialData.FileKey
             };
 
+	    string targetPath = $"{bridgePartialData.TargetPath}.download";
             using GetObjectResponse response = await s3Client.GetObjectAsync(getObjectRequest);
-            await response.WriteResponseStreamToFileAsync(bridgePartialData.TargetPath, false, default);
+            await response.WriteResponseStreamToFileAsync(targetPath, false, default);
+            FSUtilHelper.MoveFileUnique(targetPath, bridgePartialData.TargetPath);
             Console.WriteLine($"File downloaded to {bridgePartialData.TargetPath}");
         }
         catch (Exception ex)
