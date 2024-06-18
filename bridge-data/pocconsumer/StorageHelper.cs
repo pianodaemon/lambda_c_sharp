@@ -26,18 +26,18 @@ public static class StorageHelper
                 Key = bridgePartialData.FileKey
             };
 
-            string targetPath = $"{bridgePartialData.TargetPath}.download";
-            Directory.CreateDirectory(Path.GetDirectoryName(targetPath) ?? throw new InvalidOperationException("Target path is null or invalid."));
+            string targetPathDownload = $"{bridgePartialData.TargetPath}.download";
+            Directory.CreateDirectory(Path.GetDirectoryName(targetPathDownload) ?? throw new InvalidOperationException("Target path is null or invalid."));
             using GetObjectResponse response = await s3Client.GetObjectAsync(getObjectRequest);
-            await response.WriteResponseStreamToFileAsync(targetPath, false, default);
+            await response.WriteResponseStreamToFileAsync(targetPathDownload, false, default);
             switch(DetermineStrategy(bridgePartialData.TargetPath, nonRestrictedDirs))
             {
                 case Strategy.Create:
                 case Strategy.Overwrite:
-                    File.Move(targetPath, bridgePartialData.TargetPath, true);
+                    File.Move(targetPathDownload, bridgePartialData.TargetPath, true);
                     break;
                 case Strategy.Versionate:
-                    FSUtilHelper.MoveFileUnique(targetPath, bridgePartialData.TargetPath);
+                    FSUtilHelper.MoveFileUnique(targetPathDownload, bridgePartialData.TargetPath);
                     break;
             }
             Console.WriteLine($"File downloaded to {bridgePartialData.TargetPath}");
