@@ -30,10 +30,10 @@ public class Consumer
         this.nonRestrictedDirs = nonRestrictedDirs;
     }
 
-    public static async Task StartConsumingLoop(string queueUrl, string sourceBucket, HashSet<string> nonRestrictedDirs, AmazonSQSClient sqsClient, AmazonS3Client s3Client, int delayMilliseconds)
+    public static async Task StartConsumingLoop(string queueUrl, string sourceBucket, HashSet<string> nonRestrictedDirs, AmazonSQSClient sqsClient, AmazonS3Client s3Client, CancellationToken cancellationToken, int delayMilliseconds)
     {
         Consumer consumer = new Consumer(queueUrl, sourceBucket, nonRestrictedDirs, sqsClient, s3Client);
-        while (true)
+        while (!cancellationToken.IsCancellationRequested)
         {
             await consumer.ExtractMessages(MessageHelper.DecodeMessage, StorageHelper.SaveOnPersistence);
 

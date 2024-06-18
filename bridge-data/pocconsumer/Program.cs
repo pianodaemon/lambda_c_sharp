@@ -23,6 +23,25 @@ class Program
 
         AmazonSQSClient sqsClient = new(RegionEndpoint.USEast1);
         AmazonS3Client s3Client = new(RegionEndpoint.USEast1);
-        await Consumer.StartConsumingLoop(queueUrl, sourceBucket, overwritePermissibleDirectories, sqsClient, s3Client, 5000);
+
+        using CancellationTokenSource cts = new();
+	Console.CancelKeyPress += (sender, eventArgs) =>
+        {
+            eventArgs.Cancel = true; // Cancel the termination to allow cleanup
+            cts.Cancel();
+        };
+
+        try
+        {
+            await Consumer.StartConsumingLoop(queueUrl, sourceBucket, overwritePermissibleDirectories, sqsClient, s3Client, cts.Token, 5000);
+        }
+        catch (OperationCanceledException)
+        {
+            Console.WriteLine("Consuming loop cancelled.");
+        }
+        finally
+        {
+            Console.WriteLine("Application is shutting down...");
+        }
     }
 }
