@@ -12,48 +12,37 @@ class FSUtilHelper
         }
     }
 
-    public static void RenameFileIfExists(string filePath)
+    public static void MoveFileUnique(string sourcePath, string destinationPath)
+    {
+        ValidateFilePath(sourcePath);
+        RenameFiles(destinationPath);
+        if (File.Exists(sourcePath)) File.Move(sourcePath, destinationPath);
+    }
+
+    public static void RenameFiles(string filePath)
     {
         ValidateFilePath(filePath);
 
-        try
+        string prefix;
+        int digits;
+        Regex regex = new Regex(@"^(.+)\.(\d+)$");
+        Match match = regex.Match(filePath);
+
+        if (match.Success)
         {
-            string directoryPath = Path.GetDirectoryName(filePath) ?? throw new InvalidOperationException("Directory path is invalid.");
-            string fileNameWithoutExtension = Path.GetFileNameWithoutExtension(filePath);
-            string fileExtension = Path.GetExtension(filePath);
-
-            // Logic to rename the file if already exists with postfix .1, .2, .3 and so on
-            // For ex: If test.txt already exists then rename it to test.1.txt
-            int digit;
-            string prefix;
-
-            var match = Regex.Match(fileNameWithoutExtension, @"^(.+)\.(\d+)$");
-            if (match.Success)
-            {
-                prefix = match.Groups[1].Value;
-                digit = int.Parse(match.Groups[2].Value) + 1;
-
-            }
-            else
-            {
-                prefix = fileNameWithoutExtension;
-                digit = 0;
-            }
-
-            digit++;
-
-            string newFileName = $"{prefix}.{digit}{fileExtension}";
-            if (File.Exists(Path.Combine(directoryPath, newFileName)))
-            {
-                RenameFileIfExists(filePath);
-            }
-            // Rename the file       
-            File.Move(filePath, Path.Combine(directoryPath, newFileName));
+            prefix = match.Groups[1].Value;
+            digits = int.Parse(match.Groups[2].Value);
         }
-        catch (Exception ex)
+        else
         {
-            Console.WriteLine($"Error renaming file: {ex.Message}");
-            throw;
+            prefix = filePath;
+            digits = 0;
         }
+
+        digits++;
+        string newname = $"{prefix}.{digits}";
+
+        if (File.Exists(newname))RenameFiles(newname);
+        File.Move(filePath, newname);
     }
 }
