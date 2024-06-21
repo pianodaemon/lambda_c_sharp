@@ -26,19 +26,89 @@ public class ConsumerTests
     }
 
     [Fact]
-    public void should_detectPresenceOfQueueforTest()
+    public void should_verifyStrategiesTest()
     {
+        var s3Client = obtainS3Client(_localstackServiceUrl);
         var sqsClient = ConsumerTests.obtainSqsClient(_localstackServiceUrl);
-        var t = isQueuePresent(sqsClient, _testQ);
+
+        {      
+            string fileKey = "/etc/hosts";
+	    string targetPath = "/tmp/hosts_copy.txt";
+
+            placeStuffIntoCloud(fileKey, targetPath, sqsClient, s3Client);
+
+	    var t1 = turnIntoQueueUrl(sqsClient, _testQ);
+
+	    HashSet<string> nonRestrictedDirs = new HashSet<string>
+            {
+                "/tmp"
+            };
+
+	    // Then our expectation is a creation
+	    var t2 = startConsuming(t1.Result, _testB, nonRestrictedDirs, sqsClient, s3Client);
+            t2.Wait();
+
+	    Assert.True(File.Exists(targetPath), "File could not be created !!");
+	}
+
+	{      
+            string fileKey = "/etc/services";
+	    string targetPath = "/tmp/hosts_copy.txt";
+
+            placeStuffIntoCloud(fileKey, targetPath, sqsClient, s3Client);
+
+	    var t1 = turnIntoQueueUrl(sqsClient, _testQ);
+
+	    HashSet<string> nonRestrictedDirs = new HashSet<string>
+            {
+                "/tmp"
+            };
+
+	    // Then our expectation is a creation
+	    var t2 = startConsuming(t1.Result, _testB, nonRestrictedDirs, sqsClient, s3Client);
+            t2.Wait();
+            string fragment = "Internet style";
+	    string text = File.ReadAllText(targetPath);
+
+            // Split the text into lines and get the first line
+            string[] lines = text.Split(new[] { "\r\n", "\r", "\n" }, StringSplitOptions.None);
+            string firstLine = lines.Length > 0 ? lines[0] : string.Empty;
+
+            // Verify the presence of the fragment in the first line
+            bool isFragmentPresent = firstLine.Contains(fragment);
+
+	    Assert.True(isFragmentPresent, "Overwrite never occuried !!");
+	}
+
+	{      
+            string fileKey = "/etc/passwd";
+	    string targetPath = "/tmp/hosts_copy.txt";
+
+            placeStuffIntoCloud(fileKey, targetPath, sqsClient, s3Client);
+
+	    var t1 = turnIntoQueueUrl(sqsClient, _testQ);
+
+	    HashSet<string> nonRestrictedDirs = new HashSet<string>
+            {
+                "/var"
+            };
+
+	    // Then our expectation is a versionate
+	    var t2 = startConsuming(t1.Result, _testB, nonRestrictedDirs, sqsClient, s3Client);
+            t2.Wait();
+
+	   Assert.True(File.Exists($"{targetPath}.1") && File.Exists($"{targetPath}.2"), "Versionate never occuried !!");
+	}
+
+    }
+
+    private void placeStuffIntoCloud(string fileKey, string targetPath, AmazonSQSClient sqsClient, AmazonS3Client s3Client)
+    {
+    	var t = isQueuePresent(sqsClient, _testQ);
         t.Wait();
         Assert.True(t.Result, $"Queue {_testQ} is not present");
 
-       
-        string fileKey = "/etc/hosts";
-	string targetPath = "/nfs_volume/etc/hosts_copy.txt";
-
-
-        var s3Client = obtainS3Client(_localstackServiceUrl);
+ 
         FileStream fs = new FileStream(fileKey, FileMode.Open, FileAccess.Read);
         upload(s3Client, _testB, "text/plain", fileKey, fs);
 
@@ -48,25 +118,12 @@ public class ConsumerTests
         obj.targetPath = targetPath;
         var t0 = sendObjectAsJson(sqsClient, _testQ, obj);
         t0.Wait();
+    }
 
-	var t1 = turnIntoQueueUrl(sqsClient, _testQ);
-        t1.Wait();
-        var req = new ReceiveMessageRequest {
-            QueueUrl = t1.Result,
-            MaxNumberOfMessages = 10,
-            WaitTimeSeconds = 1,
-        };
-
-        var t2 = sqsClient.ReceiveMessageAsync(req);
-	t2.Wait();
-	var res = t2.Result;
-	string jsonMsg = res.Messages[0].Body;
-	/*var pm = JsonSerializer.Deserialize<PartialMsg>(jsonMsg);
-        Assert.True(pm.fileKey == fileKey, "UPS!!!");
-	Assert.True(pm.targetPath == targetPath, "UPS!!!");*/
-	var pd = MessageHelper.DecodeMessage(jsonMsg);
-	Assert.True(pd.FileKey == fileKey, "UPS!!!");
-	Assert.True(pd.TargetPath == targetPath, "UPS!!!");
+    private static async Task startConsuming(string queueUrl, string sourceBucket, HashSet<string> nonRestrictedDirs, AmazonSQSClient sqsClient, AmazonS3Client s3Client)
+    {
+        Consumer consumer = new Consumer(queueUrl, sourceBucket, nonRestrictedDirs, sqsClient, s3Client);
+        await consumer.ExtractMessages(MessageHelper.DecodeMessage, StorageHelper.SaveOnPersistence);
     }
 
     public static async Task upload(IAmazonS3 s3Client, string target, string cType, string fileName, Stream inputStream)

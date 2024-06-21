@@ -21,7 +21,7 @@ public class Consumer
     private readonly AmazonS3Client s3Client;
     private readonly HashSet<string> nonRestrictedDirs;
 
-    private Consumer(string queueUrl, string sourceBucket, HashSet<string> nonRestrictedDirs, AmazonSQSClient sqsClient, AmazonS3Client s3Client)
+    public Consumer(string queueUrl, string sourceBucket, HashSet<string> nonRestrictedDirs, AmazonSQSClient sqsClient, AmazonS3Client s3Client)
     {
         this.queueUrl = queueUrl;
         this.sourceBucket = sourceBucket;
@@ -42,7 +42,7 @@ public class Consumer
         }
     }
 
-    private async Task ExtractMessages(MessageBodyDecoder messageBodyDecoder, FileSaver fileSaver)
+    public async Task ExtractMessages(MessageBodyDecoder messageBodyDecoder, FileSaver fileSaver)
     {
         ReceiveMessageRequest receiveMessageRequest = new()
         {
