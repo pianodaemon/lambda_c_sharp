@@ -1,4 +1,5 @@
 using System.IO;
+using System.Text.Json;
 using Amazon;
 using Amazon.S3;
 using Amazon.S3.Model;
@@ -27,10 +28,55 @@ public class ConsumerTests
     [Fact]
     public void should_detectPresenceOfQueueforTest()
     {
-        var client = ConsumerTests.obtainSqsClient(_localstackServiceUrl);
-        var t1 = isQueuePresent(client, _testQ);
+        var sqsClient = ConsumerTests.obtainSqsClient(_localstackServiceUrl);
+        var t = isQueuePresent(sqsClient, _testQ);
+        t.Wait();
+        Assert.True(t.Result, $"Queue {_testQ} is not present");
+
+       
+        string fileKey = "/etc/hosts";
+	string targetPath = "/nfs_volume/etc/hosts_copy.txt";
+
+
+        var s3Client = obtainS3Client(_localstackServiceUrl);
+        FileStream fs = new FileStream(fileKey, FileMode.Open, FileAccess.Read);
+        upload(s3Client, _testB, "text/plain", fileKey, fs);
+
+        // Let us push a json message
+        var obj = new PartialMsg();
+	obj.fileKey = fileKey;
+        obj.targetPath = targetPath;
+        var t0 = sendObjectAsJson(sqsClient, _testQ, obj);
+        t0.Wait();
+
+	var t1 = turnIntoQueueUrl(sqsClient, _testQ);
         t1.Wait();
-        Assert.True(t1.Result, $"Queue {_testQ} is not present");
+        var req = new ReceiveMessageRequest {
+            QueueUrl = t1.Result,
+            MaxNumberOfMessages = 10,
+            WaitTimeSeconds = 1,
+        };
+
+        var t2 = sqsClient.ReceiveMessageAsync(req);
+	t2.Wait();
+	var res = t2.Result;
+	string jsonMsg = res.Messages[0].Body;
+	var pm = JsonSerializer.Deserialize<PartialMsg>(jsonMsg);
+        Assert.True(pm.fileKey == fileKey, "UPS!!!");
+	Assert.True(pm.targetPath == targetPath, "UPS!!!");
+    }
+
+    public static async Task upload(IAmazonS3 s3Client, string target, string cType, string fileName, Stream inputStream)
+    {
+        var objRequest = new PutObjectRequest()
+        {
+            BucketName = target,
+            Key = fileName,
+            ContentType = cType,
+            InputStream = inputStream,
+        };
+
+        var res = await s3Client.PutObjectAsync(objRequest);
     }
 
     private static async Task<string> turnIntoQueueUrl(IAmazonSQS sqsClient, string queueName)
@@ -43,5 +89,41 @@ public class ConsumerTests
     {
         var res = await turnIntoQueueUrl(sqsClient, queueName);
         return res.EndsWith(_testQ);
+    }
+
+    public static async Task<string> send(IAmazonSQS sqsClient, string queueName, string messageBody)
+    {
+        var t = turnIntoQueueUrl(sqsClient, queueName);
+        t.Wait();
+        SendMessageResponse responseSendMsg = await sqsClient.SendMessageAsync(t.Result, messageBody);
+        return responseSendMsg.MessageId;
+    }
+
+    public static async Task<string> sendObjectAsJson<T>(IAmazonSQS sqsClient, string queueName, T obj)
+    {
+        return await send(sqsClient, queueName, JsonSerializer.Serialize(obj));
+    }
+}
+
+public class PartialMsg
+{
+    public string? targetPath { get; set; }
+    public string? fileKey { get; set; }
+
+    public override bool Equals(object? obj)
+    {
+        var item = obj as PartialMsg;
+
+        if (item == null || this.targetPath == null || this.fileKey == null )
+        {
+            return false;
+        }
+
+        return this.fileKey.Equals(item.fileKey) && this.targetPath.Equals(item.targetPath) ;
+    }
+
+    public override int GetHashCode()
+    {
+        return this.targetPath != null && this.fileKey != null ? (this.targetPath + this.fileKey).GetHashCode() : 0;
     }
 }
