@@ -64,7 +64,7 @@ public class ConsumerTests {
 
             HashSet<string> nonRestrictedDirs = new HashSet<string>{"/tmp"};
 
-            // Then our expectation is a creation
+            // Then our expectation is a overwrite
             var t2 = startConsuming(t1.Result, _testB, nonRestrictedDirs,
                                     sqsClient, s3Client);
             t2.Wait();
@@ -78,7 +78,6 @@ public class ConsumerTests {
 
             // Verify the presence of the fragment in the first line
             bool isFragmentPresent = firstLine.Contains(fragment);
-
             Assert.True(isFragmentPresent, "Overwrite never occuried !!");
         }
 
