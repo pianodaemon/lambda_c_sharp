@@ -61,9 +61,12 @@ public class ConsumerTests
 	t2.Wait();
 	var res = t2.Result;
 	string jsonMsg = res.Messages[0].Body;
-	var pm = JsonSerializer.Deserialize<PartialMsg>(jsonMsg);
+	/*var pm = JsonSerializer.Deserialize<PartialMsg>(jsonMsg);
         Assert.True(pm.fileKey == fileKey, "UPS!!!");
-	Assert.True(pm.targetPath == targetPath, "UPS!!!");
+	Assert.True(pm.targetPath == targetPath, "UPS!!!");*/
+	var pd = MessageHelper.DecodeMessage(jsonMsg);
+	Assert.True(pd.FileKey == fileKey, "UPS!!!");
+	Assert.True(pd.TargetPath == targetPath, "UPS!!!");
     }
 
     public static async Task upload(IAmazonS3 s3Client, string target, string cType, string fileName, Stream inputStream)
