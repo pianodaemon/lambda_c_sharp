@@ -13,7 +13,6 @@ class Program
     {
         HashSet<string> overwritePermissibleDirectories = new HashSet<string>
         {
-            "/path/to/dir1",
             "/path/to/dir2"
         };
 
@@ -25,7 +24,7 @@ class Program
         AmazonS3Client s3Client = new(RegionEndpoint.USEast1);
 
         using CancellationTokenSource cts = new();
-	Console.CancelKeyPress += (sender, eventArgs) =>
+        Console.CancelKeyPress += (sender, eventArgs) =>
         {
             eventArgs.Cancel = true; // Cancel the termination to allow cleanup
             cts.Cancel();

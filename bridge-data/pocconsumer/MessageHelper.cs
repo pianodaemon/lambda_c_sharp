@@ -1,9 +1,9 @@
-namespace POCConsumer;
-
 using System;
 using Newtonsoft.Json.Linq;
 
-public static class MessageHelper
+namespace POCConsumer;
+
+public class MessageHelper
 {
     public const string FileKeyField = "fileKey";
     public const string TargetPathField = "targetPath";
