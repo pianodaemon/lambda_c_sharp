@@ -15,9 +15,8 @@ using MassTransit.AmazonSqsTransport;
 
 
 public record BridgePartialData(string FileKey, string TargetPath);
-
 public delegate Task FileSaver(AmazonS3Client s3Client, string sourceBucket, HashSet<string> nonRestrictedDirs, BridgePartialData bridgePartialData);
-
+public delegate IBusControl SetupBusDelegate(string secretKey, string accessKey, RegionEndpoint region, string queueName, string sourceBucket, HashSet<string> nonRestrictedDirs, FileSaver fileSaver);
 
 public class Consumer
 {
@@ -41,12 +40,12 @@ public class Consumer
     public static Task StartConsumingLoop(string secretKey, string accessKey, RegionEndpoint region, string queueName, string sourceBucket, HashSet<string> nonRestrictedDirs)
     {
         Consumer consumer = new Consumer(secretKey, accessKey, region, queueName, sourceBucket, nonRestrictedDirs);
-        return consumer.ExtractMessagesMassivily(StorageHelper.SaveOnPersistence);
+        return consumer.ExtractMessagesMassivily(BusHelper.setupBus, StorageHelper.SaveOnPersistence);
     }
 
-    public async Task ExtractMessagesMassivily(FileSaver fileSaver)
+    public async Task ExtractMessagesMassivily(SetupBusDelegate setupBus, FileSaver fileSaver)
     {
-        var busControl = BusHelper.setupBus(secretKey, accessKey, region, queueName, sourceBucket, nonRestrictedDirs, fileSaver);
+        var busControl = setupBus(secretKey, accessKey, region, queueName, sourceBucket, nonRestrictedDirs, fileSaver);
         await busControl.StartAsync();
         try
         {
