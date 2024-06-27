@@ -2,86 +2,80 @@ namespace POCConsumer;
 
 using System;
 using System.Collections.Generic;
+using System.Threading;
 using System.Threading.Tasks;
+using Amazon;
+using Amazon.Runtime;
 using Amazon.S3;
 using Amazon.SQS;
 using Amazon.SQS.Model;
+using MassTransit;
+using MassTransit.Clients;
+using MassTransit.AmazonSqsTransport;
+
 
 public record BridgePartialData(string FileKey, string TargetPath);
 
-public delegate BridgePartialData MessageBodyDecoder(string messageBody);
 public delegate Task FileSaver(AmazonS3Client s3Client, string sourceBucket, HashSet<string> nonRestrictedDirs, BridgePartialData bridgePartialData);
 
 
 public class Consumer
 {
-    private readonly string queueUrl;
+    private readonly string secretKey;
+    private readonly string accessKey;
+    private readonly string queueName;
     private readonly string sourceBucket;
-    private readonly AmazonSQSClient sqsClient;
-    private readonly AmazonS3Client s3Client;
     private readonly HashSet<string> nonRestrictedDirs;
+    private readonly RegionEndpoint region;
 
-    public Consumer(string queueUrl, string sourceBucket, HashSet<string> nonRestrictedDirs, AmazonSQSClient sqsClient, AmazonS3Client s3Client)
+    public Consumer(string secretKey, string accessKey, RegionEndpoint region, string queueName, string sourceBucket, HashSet<string> nonRestrictedDirs)
     {
-        this.queueUrl = queueUrl;
+       	this.secretKey = secretKey;
+       	this.accessKey = accessKey;
+       	this.queueName = queueName;
         this.sourceBucket = sourceBucket;
-        this.sqsClient = sqsClient;
-        this.s3Client = s3Client;
         this.nonRestrictedDirs = nonRestrictedDirs;
+        this.region = region;
     }
 
-    public static async Task StartConsumingLoop(string queueUrl, string sourceBucket, HashSet<string> nonRestrictedDirs, AmazonSQSClient sqsClient, AmazonS3Client s3Client, CancellationToken cancellationToken, int delayMilliseconds)
+    public static Task StartConsumingLoop(string secretKey, string accessKey, RegionEndpoint region, string queueName, string sourceBucket, HashSet<string> nonRestrictedDirs)
     {
-        Consumer consumer = new Consumer(queueUrl, sourceBucket, nonRestrictedDirs, sqsClient, s3Client);
-        while (!cancellationToken.IsCancellationRequested)
-        {
-            await consumer.ExtractMessages(MessageHelper.DecodeMessage, StorageHelper.SaveOnPersistence);
-
-            Console.WriteLine("Waiting for new messages...");
-            await Task.Delay(delayMilliseconds);
-        }
+        Consumer consumer = new Consumer(secretKey, accessKey, region, queueName, sourceBucket, nonRestrictedDirs);
+        return consumer.ExtractMessagesMassivily(StorageHelper.SaveOnPersistence);
     }
 
-    public async Task ExtractMessages(MessageBodyDecoder messageBodyDecoder, FileSaver fileSaver)
+    public async Task ExtractMessagesMassivily(FileSaver fileSaver)
     {
-        ReceiveMessageRequest receiveMessageRequest = new()
+        var s3Client = new AmazonS3Client(new BasicAWSCredentials(accessKey, secretKey), region);
+        var busControl = Bus.Factory.CreateUsingAmazonSqs(cfg =>
         {
-            QueueUrl = queueUrl,
-            MaxNumberOfMessages = 10,
-            WaitTimeSeconds = 10
-        };
+            cfg.Host(region.SystemName, h =>
+            {
+                h.AccessKey(accessKey);
+                h.SecretKey(secretKey);
+            });
 
+            cfg.ReceiveEndpoint(queueName, e =>
+            {
+                e.Handler<BridgePartialData>(context =>
+                {
+                    return Task.Run(async () =>
+                    {
+                        await fileSaver(s3Client, sourceBucket, nonRestrictedDirs, context.Message);
+                    });
+                });
+            });
+        });
+
+        await busControl.StartAsync();
         try
         {
-            ReceiveMessageResponse receiveMessageResponse = await sqsClient.ReceiveMessageAsync(receiveMessageRequest);
-
-            if (receiveMessageResponse.Messages.Count > 0)
-            {
-                foreach (var message in receiveMessageResponse.Messages)
-                {
-                    Console.WriteLine($"Message received: {message.Body}");
-
-                    BridgePartialData bridgePartialData;
-                    bridgePartialData = messageBodyDecoder(message.Body);
-                    await fileSaver(s3Client, sourceBucket, nonRestrictedDirs, bridgePartialData);
-
-                    DeleteMessageRequest deleteMessageRequest = new()
-                    {
-                        QueueUrl = queueUrl,
-                        ReceiptHandle = message.ReceiptHandle
-                    };
-                    await sqsClient.DeleteMessageAsync(deleteMessageRequest);
-                    Console.WriteLine("Message deleted from the queue.");
-                }
-                return;
-            }
-
-            Console.WriteLine("No messages to process.");
+            Console.WriteLine("Press any key to exit");
+            await Task.Run(() => Console.ReadKey());
         }
-        catch (Exception ex)
+        finally
         {
-            Console.WriteLine($"An error occurred: {ex.Message}");
-            throw;
+            await busControl.StopAsync();
         }
     }
 }
