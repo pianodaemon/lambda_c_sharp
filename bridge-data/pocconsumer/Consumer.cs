@@ -44,36 +44,9 @@ public class Consumer
         return consumer.ExtractMessagesMassivily(StorageHelper.SaveOnPersistence);
     }
 
-    private static IBusControl setupBus(string secretKey, string accessKey,
-                                        RegionEndpoint region, string queueName,
-                                        string sourceBucket, HashSet<string> nonRestrictedDirs,
-				       	FileSaver fileSaver) {
-
-        return Bus.Factory.CreateUsingAmazonSqs(cfg =>
-        {
-            cfg.Host(region.SystemName, h =>
-            {
-                h.AccessKey(accessKey);
-                h.SecretKey(secretKey);
-            });
-
-            cfg.ReceiveEndpoint(queueName, e =>
-            {
-                e.Handler<BridgePartialData>(context =>
-                {
-                    return Task.Run(async () =>
-                    {
-                        var s3Client = new AmazonS3Client(new BasicAWSCredentials(accessKey, secretKey), region);
-                        await fileSaver(s3Client, sourceBucket, nonRestrictedDirs, context.Message);
-                    });
-                });
-            });
-        });
-    }
-
     public async Task ExtractMessagesMassivily(FileSaver fileSaver)
     {
-        var busControl = setupBus(secretKey, accessKey, region, queueName, sourceBucket, nonRestrictedDirs, fileSaver);
+        var busControl = BusHelper.setupBus(secretKey, accessKey, region, queueName, sourceBucket, nonRestrictedDirs, fileSaver);
         await busControl.StartAsync();
         try
         {
