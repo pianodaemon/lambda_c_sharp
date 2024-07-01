@@ -1,18 +1,9 @@
 namespace POCConsumer;
 
-using System;
-using System.Collections.Generic;
-using System.Threading;
-using System.Threading.Tasks;
 using Amazon;
 using Amazon.Runtime;
 using Amazon.S3;
-using Amazon.SQS;
-using Amazon.SQS.Model;
 using MassTransit;
-using MassTransit.Clients;
-using MassTransit.AmazonSqsTransport;
-using Microsoft.Extensions.Hosting;
 
 public record BridgePartialData(string FileKey, string TargetPath);
 public delegate Task FileSaver(AmazonS3Client s3Client, string sourceBucket, HashSet<string> nonRestrictedDirs, BridgePartialData bridgePartialData);
