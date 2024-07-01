@@ -4,6 +4,8 @@ using Amazon;
 
 class Program
 {
+    private const string appName = "Bridge data consumer";
+
     static void Main(string[] args)
     {
         HashSet<string> overwritePermissibleDirectories = new HashSet<string>
@@ -20,11 +22,11 @@ class Program
             var builder = WebApplication.CreateBuilder(args);
 
             MassTransitHelper.setupService(builder.Services, "secretKey", "accessKey",
-                                           RegionEndpoint.USEast1 , queueName, sourceBucket,
+                                           RegionEndpoint.USEast1, queueName, sourceBucket,
                                            overwritePermissibleDirectories, StorageHelper.SaveOnPersistence);
 
             var app = builder.Build();
-            //app.MapDefaultEndpoints();
+            app.MapGet("/", () => $"{appName} is on!");
             app.Run();
         }
         catch (Exception ex)
