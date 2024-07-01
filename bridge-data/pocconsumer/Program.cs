@@ -20,8 +20,8 @@ class Program
             var builder = WebApplication.CreateBuilder(args);
 
             MassTransitHelper.setupService(builder.Services, "secretKey", "accessKey",
-                              RegionEndpoint.USEast1 , queueName, sourceBucket,
-                              overwritePermissibleDirectories, StorageHelper.SaveOnPersistence);
+                                           RegionEndpoint.USEast1 , queueName, sourceBucket,
+                                           overwritePermissibleDirectories, StorageHelper.SaveOnPersistence);
 
             var app = builder.Build();
             //app.MapDefaultEndpoints();
