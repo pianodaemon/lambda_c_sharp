@@ -23,13 +23,19 @@ class Program
 
         try
         {
-            await Consumer.StartConsumingLoop("secretKey", "accessKey", RegionEndpoint.USEast1 , queueName, sourceBucket, overwritePermissibleDirectories);
+            var builder = WebApplication.CreateBuilder(args);
 
-            //await Consumer.StartConsumingLoop(queueUrl, sourceBucket, overwritePermissibleDirectories, sqsClient, s3Client, cts.Token, 5000);
+            MassTransitHelper.setupService(builder.Services, "secretKey", "accessKey",
+                              RegionEndpoint.USEast1 , queueName, sourceBucket,
+                              overwritePermissibleDirectories, StorageHelper.SaveOnPersistence);
+
+            var app = builder.Build();
+            //app.MapDefaultEndpoints();
+            app.Run();
         }
-        catch (OperationCanceledException)
+        catch (Exception ex)
         {
-            Console.WriteLine("Consuming loop cancelled.");
+            Console.WriteLine($"Application terminated unexpectedly.\n{ex.ToString()}");
         }
         finally
         {
