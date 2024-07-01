@@ -29,6 +29,7 @@ internal static class MassTransitHelper
 
                 cfg.ReceiveEndpoint(queueName, e =>
                 {
+                    e.ConfigureConsumeTopology = false;
                     e.Handler<BridgePartialData>(context =>
                     {
                         return Task.Run(async () =>
