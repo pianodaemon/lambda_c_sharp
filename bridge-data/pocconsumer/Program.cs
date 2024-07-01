@@ -4,7 +4,7 @@ using Amazon;
 
 class Program
 {
-    static async Task Main(string[] args)
+    static void Main(string[] args)
     {
         HashSet<string> overwritePermissibleDirectories = new HashSet<string>
         {
