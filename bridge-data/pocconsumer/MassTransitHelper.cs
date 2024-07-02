@@ -4,6 +4,7 @@ using Amazon;
 using Amazon.Runtime;
 using Amazon.S3;
 using MassTransit;
+using System.Net.Mime;
 
 public record BridgePartialData(string FileKey, string TargetPath);
 public delegate Task FileSaver(AmazonS3Client s3Client, string sourceBucket, HashSet<string> nonRestrictedDirs, BridgePartialData bridgePartialData);
@@ -11,9 +12,9 @@ public delegate Task FileSaver(AmazonS3Client s3Client, string sourceBucket, Has
 internal static class MassTransitHelper
 {
     public static IServiceCollection setupService(IServiceCollection services, string secretKey, string accessKey,
-                                        RegionEndpoint region, string queueName,
-                                        string sourceBucket, HashSet<string> nonRestrictedDirs,
-				       	FileSaver fileSaver)
+                                                  RegionEndpoint region, string queueName,
+                                                  string sourceBucket, HashSet<string> nonRestrictedDirs,
+                                                  FileSaver fileSaver)
     {
         services.AddMassTransit(mt =>
         {
@@ -29,6 +30,8 @@ internal static class MassTransitHelper
 
                 cfg.ReceiveEndpoint(queueName, e =>
                 {
+                    e.DefaultContentType = new ContentType("application/json");
+                    e.UseRawJsonSerializer(RawSerializerOptions.AddTransportHeaders | RawSerializerOptions.CopyHeaders);
                     e.ConfigureConsumeTopology = false;
                     e.Handler<BridgePartialData>(context =>
                     {
@@ -40,8 +43,6 @@ internal static class MassTransitHelper
                     });
                 });
             });
-
-            mt.AddBus(provider => Bus.Factory.CreateUsingAmazonSqs(cfg => cfg.ConfigureEndpoints(provider)));
         });
 
         return services;
