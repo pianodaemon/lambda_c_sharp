@@ -16,7 +16,7 @@ public static class StorageHelper
         Versionate
     }
 
-    public static async Task SaveOnPersistence(AmazonS3Client s3Client, string sourceBucket, HashSet<string> nonRestrictedDirs, BridgePartialData bridgePartialData)
+    public static async Task SaveOnPersistence(ILogger logger, AmazonS3Client s3Client, string sourceBucket, HashSet<string> nonRestrictedDirs, BridgePartialData bridgePartialData)
     {
         try
         {
@@ -28,11 +28,11 @@ public static class StorageHelper
             var strategy = DetermineStrategy(bridgePartialData.TargetPath, nonRestrictedDirs);
             ApplyStrategy(targetPathDownload, bridgePartialData.TargetPath, strategy);
 
-            Console.WriteLine($"File downloaded to {bridgePartialData.TargetPath}");
+            logger.LogInformation($"File downloaded to {bridgePartialData.TargetPath}");
         }
         catch (Exception ex)
         {
-            Console.WriteLine($"Error downloading or saving file: {ex.Message}");
+            logger.LogError($"Error downloading or saving file: {ex.Message}");
             throw;
         }
     }
