@@ -5,7 +5,6 @@ using Amazon.Runtime;
 using Amazon.S3;
 using MassTransit;
 using System.Net.Mime;
-
 using Serilog;
 
 public record BridgePartialData(string FileKey, string TargetPath);
