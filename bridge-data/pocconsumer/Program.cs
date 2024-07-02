@@ -1,24 +1,23 @@
-namespace POCConsumer;
-
 using Microsoft.Extensions.Hosting;
+using Serilog;
+using Serilog.Formatting.Compact;
 
-class Program
+Log.Logger = new LoggerConfiguration()
+    .WriteTo.Console(new CompactJsonFormatter())
+    .Enrich.FromLogContext()
+    .CreateBootstrapLogger();
+
+try
 {
-    static void Main(string[] args)
-    {
-        try
-        {
-            var builder = MassTransitHelper.CreateHostBuilder(args);
-            var app = builder.Build();
-            app.Run();
-        }
-        catch (Exception ex)
-        {
-            Console.WriteLine($"Application terminated unexpectedly.\n{ex.ToString()}");
-        }
-        finally
-        {
-            Console.WriteLine("Application is shutting down...");
-        }
-    }
+    var builder = POCConsumer.MassTransitHelper.CreateHostBuilder(args);
+    var app = builder.Build();
+    app.Run();
+}
+catch (Exception ex)
+{
+    Log.Fatal(ex, "Application terminated unexpectedly}");
+}
+finally
+{
+    Log.CloseAndFlush();
 }
