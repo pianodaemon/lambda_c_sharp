@@ -23,7 +23,7 @@ public static class StorageHelper
             string targetPathDownload = $"{bridgePartialData.TargetPath}.download";
             Directory.CreateDirectory(Path.GetDirectoryName(targetPathDownload) ?? throw new InvalidOperationException("Target path is null or invalid."));
 
-            await DownloadFileAsync(s3Client, sourceBucket, bridgePartialData.FileKey, targetPathDownload);
+            await DownloadFileAsync(s3Client, sourceBucket, bridgePartialData.FileKey.TrimStart('/'), targetPathDownload);
 
             var strategy = DetermineStrategy(bridgePartialData.TargetPath, nonRestrictedDirs);
             ApplyStrategy(targetPathDownload, bridgePartialData.TargetPath, strategy);
