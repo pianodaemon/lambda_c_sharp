@@ -1,32 +1,15 @@
 namespace POCConsumer;
 
-using Amazon;
+using Microsoft.Extensions.Hosting;
 
 class Program
 {
-    private const string appName = "Bridge data consumer";
-
     static void Main(string[] args)
     {
-        HashSet<string> overwritePermissibleDirectories = new HashSet<string>
-        {
-            "/path/to/dir2"
-        };
-
-        string queueName = "my-queue";
-        string sourceBucket = "my-bucket";
-        Console.WriteLine($"Starting to consume messages from SQS queue: {queueName} and source bucket: {sourceBucket}...");
-
         try
         {
-            var builder = WebApplication.CreateBuilder(args);
-
-            MassTransitHelper.setupService(builder.Services, "secretKey", "accessKey",
-                                           RegionEndpoint.USEast1, queueName, sourceBucket,
-                                           overwritePermissibleDirectories, StorageHelper.SaveOnPersistence);
-
+            var builder = MassTransitHelper.CreateHostBuilder(args);
             var app = builder.Build();
-            app.MapGet("/", () => $"{appName} is on!");
             app.Run();
         }
         catch (Exception ex)
