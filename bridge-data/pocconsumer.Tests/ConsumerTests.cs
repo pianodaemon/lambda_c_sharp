@@ -6,6 +6,11 @@ using Amazon.S3.Model;
 using Amazon.Runtime;
 using Amazon.SQS;
 using Amazon.SQS.Model;
+using MassTransit;
+using MassTransit.Clients;
+using MassTransit.AmazonSqsTransport;
+
+
 
 namespace POCConsumer.Tests;
 
@@ -41,13 +46,11 @@ public class ConsumerTests {
 
             placeStuffIntoCloud(fileKey, targetPath, sqsClient, s3Client);
 
-            var t1 = turnIntoQueueUrl(sqsClient, _testQ);
-
             HashSet<string> nonRestrictedDirs = new HashSet<string>{"/tmp"};
 
             // Then our expectation is a creation
-            var t2 = startConsuming(t1.Result, _testB, nonRestrictedDirs,
-                                    sqsClient, s3Client);
+            var t2 = startConsuming(SecretKey, AccessKey, RegionEndpoint.USEast1,
+			    _testQ, _testB, nonRestrictedDirs);
             t2.Wait();
 
             Assert.True(File.Exists(targetPath),
@@ -60,13 +63,11 @@ public class ConsumerTests {
 
             placeStuffIntoCloud(fileKey, targetPath, sqsClient, s3Client);
 
-            var t1 = turnIntoQueueUrl(sqsClient, _testQ);
-
             HashSet<string> nonRestrictedDirs = new HashSet<string>{"/tmp"};
 
             // Then our expectation is a overwrite
-            var t2 = startConsuming(t1.Result, _testB, nonRestrictedDirs,
-                                    sqsClient, s3Client);
+            var t2 = startConsuming(SecretKey, AccessKey, RegionEndpoint.USEast1,
+			    _testQ, _testB, nonRestrictedDirs);
             t2.Wait();
             string fragment = "Internet style";
             string text = File.ReadAllText(targetPath);
@@ -87,13 +88,11 @@ public class ConsumerTests {
 
             placeStuffIntoCloud(fileKey, targetPath, sqsClient, s3Client);
 
-            var t1 = turnIntoQueueUrl(sqsClient, _testQ);
-
             HashSet<string> nonRestrictedDirs = new HashSet<string>{"/var"};
 
             // Then our expectation is a versionate
-            var t2 = startConsuming(t1.Result, _testB, nonRestrictedDirs,
-                                    sqsClient, s3Client);
+            var t2 = startConsuming(SecretKey, AccessKey, RegionEndpoint.USEast1,
+				    _testQ, _testB, nonRestrictedDirs);
             t2.Wait();
 
             Assert.True(File.Exists($"{targetPath}.1") &&
@@ -120,15 +119,13 @@ public class ConsumerTests {
         t0.Wait();
     }
 
-    private static async Task startConsuming(string queueUrl,
+    private async Task startConsuming(string secretKey, string accessKey,
+                                             RegionEndpoint region, string queueName,
                                              string sourceBucket,
-                                             HashSet<string> nonRestrictedDirs,
-                                             AmazonSQSClient sqsClient,
-                                             AmazonS3Client s3Client) {
-        Consumer consumer = new Consumer(
-            queueUrl, sourceBucket, nonRestrictedDirs, sqsClient, s3Client);
-        await consumer.ExtractMessages(MessageHelper.DecodeMessage,
-                                       StorageHelper.SaveOnPersistence);
+                                             HashSet<string> nonRestrictedDirs) {
+        Consumer consumer = new Consumer(secretKey, accessKey, region, 
+            queueName, sourceBucket, nonRestrictedDirs);
+        await consumer.ExtractMessagesMassivily(setupBus, StorageHelper.SaveOnPersistence);
     }
 
     public static async Task upload(IAmazonS3 s3Client, string target,
@@ -170,6 +167,47 @@ public class ConsumerTests {
                                                          string queueName,
                                                          T obj) {
         return await send(sqsClient, queueName, JsonSerializer.Serialize(obj));
+    }
+
+    public IBusControl setupBus(string secretKey, string accessKey,
+                                       RegionEndpoint region, string queueName,
+                                       string sourceBucket, HashSet<string> nonRestrictedDirs,
+                                       FileSaver fileSaver) {
+
+        return Bus.Factory.CreateUsingAmazonSqs(cfg =>
+        {
+            /*cfg.Host(region.SystemName, h =>
+            {
+                h.AccessKey(accessKey);
+                h.SecretKey(secretKey);
+            });*/
+
+	    cfg.Host(region.SystemName, h =>
+
+	    //cfg.Host(new Uri(_localstackServiceUrl), h =>
+                {
+                    h.AccessKey(accessKey);
+                    h.SecretKey(secretKey);
+                    h.Config(new AmazonSQSConfig
+                    {
+                        ServiceURL = _localstackServiceUrl,
+                        UseHttp = true,
+                        AuthenticationRegion = region.SystemName
+                    });
+                });
+
+            cfg.ReceiveEndpoint(queueName, e =>
+            {
+                e.Handler<BridgePartialData>(context =>
+                {
+                    return Task.Run(async () =>
+                    {
+                        var s3Client = obtainS3Client(_localstackServiceUrl);
+                        await fileSaver(s3Client, sourceBucket, nonRestrictedDirs, context.Message);
+                    });
+                });
+            });
+        });
     }
 }
 

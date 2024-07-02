@@ -1,6 +1,6 @@
-namespace POCConsumer;
-
 using Microsoft.Extensions.Hosting;
+
+namespace POCConsumer;
 
 class Program
 {
