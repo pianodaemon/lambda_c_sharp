@@ -6,22 +6,31 @@ using Amazon.S3;
 using MassTransit;
 using System.Net.Mime;
 
+using Serilog;
+
 public record BridgePartialData(string FileKey, string TargetPath);
-public delegate Task FileSaver(AmazonS3Client s3Client, string sourceBucket, HashSet<string> nonRestrictedDirs, BridgePartialData bridgePartialData);
+public delegate Task FileSaver(ILogger<BridgePartialData> logger,
+                               AmazonS3Client s3Client,
+                               string sourceBucket,
+                               HashSet<string> nonRestrictedDirs,
+                               BridgePartialData bridgePartialData);
 
 internal static class MassTransitHelper
 {
-    private static void setupService(IServiceCollection services, string secretKey, string accessKey,
-                                                  RegionEndpoint region, string queueName,
-                                                  string sourceBucket, HashSet<string> nonRestrictedDirs,
-                                                  FileSaver fileSaver)
+    private static void setup(IServiceCollection services, string secretKey, string accessKey,
+                              RegionEndpoint region, string queueName, string sourceBucket,
+                              HashSet<string> nonRestrictedDirs, FileSaver fileSaver)
     {
+        var logger = services.BuildServiceProvider().GetRequiredService<ILogger<BridgePartialData>>();
+        var s3Client = new AmazonS3Client(new BasicAWSCredentials(accessKey, secretKey), region);
+
+        logger.LogInformation($"Starting to consume messages from SQS queue: {queueName} and source bucket: {sourceBucket}");
+
         services.AddMassTransit(mt =>
         {
             mt.AddConsumers(typeof(BridgePartialData).Assembly);
             mt.UsingAmazonSqs((context, cfg) =>
             {
-
                 cfg.Host(region.SystemName, h =>
                 {
                     h.AccessKey(accessKey);
@@ -37,8 +46,7 @@ internal static class MassTransitHelper
                     {
                         return Task.Run(async () =>
                         {
-                            var s3Client = new AmazonS3Client(new BasicAWSCredentials(accessKey, secretKey), region);
-                            await fileSaver(s3Client, sourceBucket, nonRestrictedDirs, context.Message);
+                            await fileSaver(logger, s3Client, sourceBucket, nonRestrictedDirs, context.Message);
                         });
                     });
                 });
@@ -48,8 +56,9 @@ internal static class MassTransitHelper
 
     public static IHostBuilder CreateHostBuilder(string[] args)
     {
-        return Host.CreateDefaultBuilder(args).ConfigureServices((hostContext, services) =>
+        return Host.CreateDefaultBuilder(args).UseSerilog().ConfigureServices((hostContext, services) =>
         {
+
             HashSet<string> nonRestrictedDirs = new HashSet<string>
             {
                 "/path/to/dir2"
@@ -59,11 +68,11 @@ internal static class MassTransitHelper
             string queueName = "my-queue";
             string sourceBucket = "my-bucket-000";
 
-            setupService(services, "secretKey", "accessKey",
-                             region, queueName, sourceBucket,
-                             nonRestrictedDirs, StorageHelper.SaveOnPersistence);
-
-            Console.WriteLine($"Starting to consume messages from SQS queue: {queueName} and source bucket: {sourceBucket}...");
+            setup(services,
+                  "SECRET_KEY_HERE",
+                  "ACCESS_KEY_HERE",
+                  region, queueName, sourceBucket,
+                  nonRestrictedDirs, StorageHelper.SaveOnPersistence);
         });
     }
 }
