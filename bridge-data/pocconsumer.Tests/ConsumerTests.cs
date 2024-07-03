@@ -34,6 +34,29 @@ public class ConsumerTests {
     public void should_verifyStrategiesTest() {
         var s3Client = obtainS3Client(_localstackServiceUrl);
         var sqsClient = ConsumerTests.obtainSqsClient(_localstackServiceUrl);
+        HashSet<string> deferredDirDirectories = new HashSet<string>
+        {
+            "/dbbin/pending"
+        };
+
+	{
+            string fileKey = "/etc/legal";
+            string targetPath = "/dbbin/pending/query.legal";
+
+            placeStuffIntoCloud(fileKey, targetPath, sqsClient, s3Client);
+
+            var t1 = turnIntoQueueUrl(sqsClient, _testQ);
+
+            HashSet<string> nonRestrictedDirs = new HashSet<string>{"/tmp"};
+
+            // Then our expectation is a creation
+            var t2 = startConsuming(t1.Result, _testB, deferredDirDirectories, nonRestrictedDirs,
+                                    sqsClient, s3Client);
+            t2.Wait();
+
+            Assert.True(File.Exists(targetPath),
+                        "File could not be created !!");
+        }
 
         {
             string fileKey = "/etc/hosts";
@@ -46,7 +69,7 @@ public class ConsumerTests {
             HashSet<string> nonRestrictedDirs = new HashSet<string>{"/tmp"};
 
             // Then our expectation is a creation
-            var t2 = startConsuming(t1.Result, _testB, nonRestrictedDirs,
+            var t2 = startConsuming(t1.Result, _testB, deferredDirDirectories, nonRestrictedDirs,
                                     sqsClient, s3Client);
             t2.Wait();
 
@@ -65,7 +88,7 @@ public class ConsumerTests {
             HashSet<string> nonRestrictedDirs = new HashSet<string>{"/tmp"};
 
             // Then our expectation is a overwrite
-            var t2 = startConsuming(t1.Result, _testB, nonRestrictedDirs,
+            var t2 = startConsuming(t1.Result, _testB, deferredDirDirectories, nonRestrictedDirs,
                                     sqsClient, s3Client);
             t2.Wait();
             string fragment = "Internet style";
@@ -92,7 +115,7 @@ public class ConsumerTests {
             HashSet<string> nonRestrictedDirs = new HashSet<string>{"/var"};
 
             // Then our expectation is a versionate
-            var t2 = startConsuming(t1.Result, _testB, nonRestrictedDirs,
+            var t2 = startConsuming(t1.Result, _testB, deferredDirDirectories, nonRestrictedDirs,
                                     sqsClient, s3Client);
             t2.Wait();
 
@@ -121,12 +144,12 @@ public class ConsumerTests {
     }
 
     private static async Task startConsuming(string queueUrl,
-                                             string sourceBucket,
+                                             string sourceBucket, HashSet<string> deferredDirDirectories,
                                              HashSet<string> nonRestrictedDirs,
                                              AmazonSQSClient sqsClient,
                                              AmazonS3Client s3Client) {
         Consumer consumer = new Consumer(
-            queueUrl, sourceBucket, nonRestrictedDirs, sqsClient, s3Client);
+            queueUrl, sourceBucket, deferredDirDirectories, nonRestrictedDirs, sqsClient, s3Client);
         await consumer.ExtractMessages(MessageHelper.DecodeMessage,
                                        StorageHelper.SaveOnPersistence);
     }

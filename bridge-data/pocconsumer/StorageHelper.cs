@@ -27,8 +27,6 @@ public static class StorageHelper
             await DownloadFileAsync(s3Client, sourceBucket, bridgePartialData.FileKey, targetPathDownload);
             var strategy = DetermineStrategy(bridgePartialData.TargetPath, deferredQueryDirs, nonRestrictedDirs);
             ApplyStrategy(targetPathDownload, bridgePartialData.TargetPath, strategy);
-
-            Console.WriteLine($"File downloaded to {bridgePartialData.TargetPath}");
         }
         catch (Exception ex)
         {
@@ -46,6 +44,7 @@ public static class StorageHelper
 
     private static void ApplyStrategy(string sourcePath, string targetPath, Strategy strategy)
     {
+        Console.WriteLine($"Using strategy {strategy}");
         switch (strategy)
         {
             case Strategy.Deferral:
@@ -63,7 +62,8 @@ public static class StorageHelper
 
     private static Strategy DetermineStrategy(string targetPath, HashSet<string> deferredQueryDirs, HashSet<string> nonRestrictedDirs)
     {
-        if (deferredQueryDirs.Contains(targetPath)) return Strategy.Deferral;
+        Console.WriteLine($"Using tp: {Path.GetDirectoryName(targetPath)}");
+        if (deferredQueryDirs.Contains(Path.GetDirectoryName(targetPath))) return Strategy.Deferral;
         if (!File.Exists(targetPath)) return Strategy.Create;
 
         string directory = Path.GetDirectoryName(targetPath) ?? throw new InvalidOperationException("Target path is null or invalid.");
