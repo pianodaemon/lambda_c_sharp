@@ -11,6 +11,7 @@ public static class StorageHelper
 {
     private enum Strategy
     {
+        Deferral,
         Create,
         Overwrite,
         Versionate
@@ -48,6 +49,9 @@ public static class StorageHelper
     {
         switch (strategy)
         {
+            case Strategy.Deferral:
+                FSUtilHelper.MoveQuery(sourcePath, Path.GetDirectoryName(targetPath));
+                break;
             case Strategy.Create:
             case Strategy.Overwrite:
                 File.Move(sourcePath, targetPath, true);
