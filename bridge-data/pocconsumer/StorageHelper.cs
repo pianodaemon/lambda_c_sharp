@@ -17,7 +17,7 @@ public static class StorageHelper
         Versionate
     }
 
-    public static async Task SaveOnPersistence(ILogger logger, AmazonS3Client s3Client, string sourceBucket, HashSet<string> nonRestrictedDirs, BridgePartialData bridgePartialData)
+    public static async Task SaveOnPersistence(ILogger logger, AmazonS3Client s3Client, string sourceBucket, HashSet<string> deferredQueryDirs, HashSet<string> nonRestrictedDirs, BridgePartialData bridgePartialData)
     {
         try
         {
@@ -26,7 +26,7 @@ public static class StorageHelper
 
             await DownloadFileAsync(s3Client, sourceBucket, bridgePartialData.FileKey.TrimStart('/'), targetPathDownload);
 
-            var strategy = DetermineStrategy(bridgePartialData.TargetPath, nonRestrictedDirs);
+            var strategy = DetermineStrategy(bridgePartialData.TargetPath, deferredQueryDirs, nonRestrictedDirs);
             ApplyStrategy(targetPathDownload, bridgePartialData.TargetPath, strategy);
 
             logger.LogInformation($"File downloaded to {bridgePartialData.TargetPath}");
@@ -62,8 +62,9 @@ public static class StorageHelper
         }
     }
 
-    private static Strategy DetermineStrategy(string targetPath, HashSet<string> nonRestrictedDirs)
+    private static Strategy DetermineStrategy(string targetPath, HashSet<string> deferredQueryDirs, HashSet<string> nonRestrictedDirs)
     {
+        if (deferredQueryDirs.Contains(Path.GetDirectoryName(targetPath))) return Strategy.Deferral;
         if (!File.Exists(targetPath)) return Strategy.Create;
 
         string directory = Path.GetDirectoryName(targetPath) ?? throw new InvalidOperationException("Target path is null or invalid.");

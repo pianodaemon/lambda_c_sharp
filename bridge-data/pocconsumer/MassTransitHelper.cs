@@ -11,6 +11,7 @@ public record BridgePartialData(string FileKey, string TargetPath);
 public delegate Task FileSaver(ILogger<BridgePartialData> logger,
                                AmazonS3Client s3Client,
                                string sourceBucket,
+                               HashSet<string> deferredQueryDirs,
                                HashSet<string> nonRestrictedDirs,
                                BridgePartialData bridgePartialData);
 
@@ -18,7 +19,7 @@ internal static class MassTransitHelper
 {
     private static void setup(IServiceCollection services, string secretKey, string accessKey,
                               RegionEndpoint region, string queueName, string sourceBucket,
-                              HashSet<string> nonRestrictedDirs, FileSaver fileSaver)
+                              HashSet<string> deferredDirDirectories, HashSet<string> nonRestrictedDirs, FileSaver fileSaver)
     {
         var logger = services.BuildServiceProvider().GetRequiredService<ILogger<BridgePartialData>>();
         var s3Client = new AmazonS3Client(new BasicAWSCredentials(accessKey, secretKey), region);
@@ -45,7 +46,7 @@ internal static class MassTransitHelper
                     {
                         return Task.Run(async () =>
                         {
-                            await fileSaver(logger, s3Client, sourceBucket, nonRestrictedDirs, context.Message);
+                            await fileSaver(logger, s3Client, sourceBucket, deferredDirDirectories, nonRestrictedDirs, context.Message);
                         });
                     });
                 });
@@ -57,6 +58,10 @@ internal static class MassTransitHelper
     {
         return Host.CreateDefaultBuilder(args).UseSerilog().ConfigureServices((hostContext, services) =>
         {
+            HashSet<string> deferredDirDirectories = new HashSet<string>
+            {
+                "/dbbin/pending"
+            };
 
             HashSet<string> nonRestrictedDirs = new HashSet<string>
             {
@@ -71,7 +76,7 @@ internal static class MassTransitHelper
                   "SECRET_KEY_HERE",
                   "ACCESS_KEY_HERE",
                   region, queueName, sourceBucket,
-                  nonRestrictedDirs, StorageHelper.SaveOnPersistence);
+                  deferredDirDirectories, nonRestrictedDirs, StorageHelper.SaveOnPersistence);
         });
     }
 }
