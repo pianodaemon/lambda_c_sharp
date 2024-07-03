@@ -1,6 +1,5 @@
 namespace POCConsumer;
 
-using System.IO;
 using System.Text.RegularExpressions;
 
 static class FSUtilHelper
@@ -66,8 +65,11 @@ static class FSUtilHelper
         }
 
         string downloadExtension = ".download";
-        string destFileName = Path.Combine(pendingDir,
-                    fileName.EndsWith(downloadExtension) ? fileName.Substring(0, fileName.Length - downloadExtension.Length) : fileName);
+        if (fileName.EndsWith(downloadExtension)) {
+            fileName = fileName.Substring(0, fileName.Length - downloadExtension.Length);
+        }
+
+        string destFileName = Path.Combine(pendingDir, fileName);
 
         int counter = 0;
     retry:
