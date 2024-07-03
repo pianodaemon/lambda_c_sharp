@@ -11,12 +11,13 @@ public static class StorageHelper
 {
     private enum Strategy
     {
+        Deferral,
         Create,
         Overwrite,
         Versionate
     }
 
-    public static async Task SaveOnPersistence(AmazonS3Client s3Client, string sourceBucket, HashSet<string> nonRestrictedDirs, BridgePartialData bridgePartialData)
+    public static async Task SaveOnPersistence(AmazonS3Client s3Client, string sourceBucket, HashSet<string> deferredQueryDirs, HashSet<string> nonRestrictedDirs, BridgePartialData bridgePartialData)
     {
         try
         {
@@ -24,8 +25,7 @@ public static class StorageHelper
             Directory.CreateDirectory(Path.GetDirectoryName(targetPathDownload) ?? throw new InvalidOperationException("Target path is null or invalid."));
 
             await DownloadFileAsync(s3Client, sourceBucket, bridgePartialData.FileKey, targetPathDownload);
-
-            var strategy = DetermineStrategy(bridgePartialData.TargetPath, nonRestrictedDirs);
+            var strategy = DetermineStrategy(bridgePartialData.TargetPath, deferredQueryDirs, nonRestrictedDirs);
             ApplyStrategy(targetPathDownload, bridgePartialData.TargetPath, strategy);
 
             Console.WriteLine($"File downloaded to {bridgePartialData.TargetPath}");
@@ -48,6 +48,9 @@ public static class StorageHelper
     {
         switch (strategy)
         {
+            case Strategy.Deferral:
+                FSUtilHelper.MoveQuery(sourcePath, Path.GetDirectoryName(targetPath));
+                break;
             case Strategy.Create:
             case Strategy.Overwrite:
                 File.Move(sourcePath, targetPath, true);
@@ -58,8 +61,9 @@ public static class StorageHelper
         }
     }
 
-    private static Strategy DetermineStrategy(string targetPath, HashSet<string> nonRestrictedDirs)
+    private static Strategy DetermineStrategy(string targetPath, HashSet<string> deferredQueryDirs, HashSet<string> nonRestrictedDirs)
     {
+        if (deferredQueryDirs.Contains(targetPath)) return Strategy.Deferral;
         if (!File.Exists(targetPath)) return Strategy.Create;
 
         string directory = Path.GetDirectoryName(targetPath) ?? throw new InvalidOperationException("Target path is null or invalid.");

@@ -11,6 +11,11 @@ class Program
 {
     static async Task Main(string[] args)
     {
+        HashSet<string> deferredDirDirectories = new HashSet<string>
+        {
+            "/dbbin/pending"
+        };
+
         HashSet<string> overwritePermissibleDirectories = new HashSet<string>
         {
             "/path/to/dir2"
@@ -32,7 +37,7 @@ class Program
 
         try
         {
-            await Consumer.StartConsumingLoop(queueUrl, sourceBucket, overwritePermissibleDirectories, sqsClient, s3Client, cts.Token, 5000);
+            await Consumer.StartConsumingLoop(queueUrl, sourceBucket, deferredDirDirectories, overwritePermissibleDirectories, sqsClient, s3Client, cts.Token, 5000);
         }
         catch (OperationCanceledException)
         {

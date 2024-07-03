@@ -1,5 +1,6 @@
 namespace POCConsumer;
 
+using System.IO;
 using System.Text.RegularExpressions;
 
 static class FSUtilHelper
@@ -43,5 +44,40 @@ static class FSUtilHelper
 
         if (File.Exists(newname))RenameFiles(newname);
         File.Move(filePath, newname);
+    }
+
+    public static void MoveQuery(string tmpFileName, string? pendingDir)
+    {
+        if (string.IsNullOrEmpty(tmpFileName))
+        {
+            throw new ArgumentException("Temporary file name must not be null or empty.", nameof(tmpFileName));
+        }
+
+        if (string.IsNullOrEmpty(pendingDir))
+        {
+            throw new ArgumentException("Pending directory must not be null or empty.", nameof(pendingDir));
+        }
+
+        string queryStr = "query";
+        string fileName = Path.GetFileName(tmpFileName);
+        if (!fileName.StartsWith($"{queryStr}."))
+        {
+            throw new InvalidOperationException("The file name must start with 'query.'");
+        }
+
+        string downloadExtension = ".download";
+        string destFileName = Path.Combine(pendingDir,
+                    fileName.EndsWith(downloadExtension) ? fileName.Substring(0, fileName.Length - downloadExtension.Length) : fileName);
+
+        int counter = 0;
+    retry:
+        if (File.Exists(destFileName))
+        {
+            counter++;
+            destFileName = Path.Combine(pendingDir, $"{fileName}.{counter}");
+            goto retry;
+        }
+
+        File.Move(tmpFileName, destFileName, true);
     }
 }
