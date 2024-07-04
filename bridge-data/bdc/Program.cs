@@ -1,3 +1,4 @@
+using BridgeDataConsumer.Console.Extensions;
 using Microsoft.Extensions.Hosting;
 using Serilog;
 using Serilog.Formatting.Compact;
@@ -10,6 +11,7 @@ Log.Logger = new LoggerConfiguration()
 try
 {
     var builder = WebApplication.CreateBuilder(args);
+    builder.AddApplicationServices();
     builder.Host.UseSerilog((ctx, servs, conf) => conf
         .ReadFrom.Configuration(ctx.Configuration)
         .ReadFrom.Services(servs)
