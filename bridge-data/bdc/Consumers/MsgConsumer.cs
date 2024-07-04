@@ -3,6 +3,8 @@ using System.IO;
 using System.Collections.Generic;
 using BridgeDataConsumer.Console.Models;
 using MassTransit;
+using Amazon.S3;
+using Amazon.S3.Model;
 
 namespace BridgeDataConsumer.Console.Consumers;
 
@@ -28,6 +30,13 @@ public class MsgConsumer : IConsumer<BridgePartialData>
     private async Task SaveOnPersistence(BridgePartialData bridgePartialData)
     {
 
+    }
+
+    private static async Task DownloadFileAsync(AmazonS3Client s3Client, string bucketName, string key, string downloadPath)
+    {
+        var getObjectRequest = new GetObjectRequest { BucketName = bucketName, Key = key };
+        using var response = await s3Client.GetObjectAsync(getObjectRequest);
+        await response.WriteResponseStreamToFileAsync(downloadPath, false, default);
     }
 
     private static void ApplyStrategy(string sourcePath, string targetPath, Strategy strategy)
