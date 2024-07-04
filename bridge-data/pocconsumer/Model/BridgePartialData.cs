@@ -1,6 +1,6 @@
-namespace POCConsumer.Models;
+namespace POCConsumer.Model;
 
-public class FetchingEvent
+public class BridgePartialData
 {
     public string? FileKey { get; set; }
     public string? TargetPath { get; set; }
