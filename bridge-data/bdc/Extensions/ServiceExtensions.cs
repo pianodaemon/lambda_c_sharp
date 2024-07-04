@@ -1,6 +1,7 @@
 using MassTransit;
 using Microsoft.Extensions.Options;
 using System.Net.Mime;
+using BridgeDataConsumer.Console.Consumers;
 
 namespace BridgeDataConsumer.Console.Extensions;
 
@@ -16,7 +17,7 @@ internal static class ServiceExtensions
     {
         builder.Services.AddMassTransit(mt =>
         {
-            mt.AddConsumer<BridgeDataConsumer>();
+            mt.AddConsumer<MsgConsumer>();
             mt.UsingAmazonSqs((ctx, cfg) =>
             {
 
@@ -26,7 +27,7 @@ internal static class ServiceExtensions
                     e.DefaultContentType = new ContentType("application/json");
                     e.UseRawJsonSerializer(RawSerializerOptions.AddTransportHeaders | RawSerializerOptions.CopyHeaders);
                     e.ConfigureConsumeTopology = false;
-                    e.ConfigureConsumer<BridgeDataConsumer>(ctx);
+                    e.ConfigureConsumer<MsgConsumer>(ctx);
                 });
             });
         });
