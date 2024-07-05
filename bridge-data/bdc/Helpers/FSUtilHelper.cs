@@ -1,6 +1,6 @@
 using System.Text.RegularExpressions;
 
-namespace BridgeDataConsumer.Console.Consumers.Helpers;
+namespace BridgeDataConsumer.Console.Helpers;
 
 static class FSUtilHelper
 {
