@@ -22,6 +22,6 @@ public class MsgConsumer : IConsumer<BridgePartialData>
 
     public async Task Consume(ConsumeContext<BridgePartialData> ctx)
     {
-        fileRepository.DownloadAsync(ctx.Message);
+        await fileRepository.DownloadAsync(ctx.Message);
     }
 }
