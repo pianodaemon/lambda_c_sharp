@@ -3,6 +3,7 @@ using MassTransit;
 using Microsoft.Extensions.Options;
 using System.Net.Mime;
 using BridgeDataConsumer.Console.Consumers;
+using BridgeDataConsumer.Console.Interfaces;
 
 namespace BridgeDataConsumer.Console.Extensions;
 
@@ -10,8 +11,25 @@ internal static class ServiceExtensions
 {
     public static IServiceCollection AddApplicationServices(this WebApplicationBuilder builder)
     {
+        HashSet<string> deferredQueryDirs = new HashSet<string>
+        {
+            "/dbbin/pending"
+        };
+
+        HashSet<string> nonRestrictedDirs = new HashSet<string>
+        {
+            "/path/to/dir2"
+        };
+
         builder.AddMassTransit();
         builder.Services.AddAWSService<IAmazonS3>(builder.Configuration.GetAWSOptions<AmazonS3Config>("AWS:S3"));
+        builder.Services.AddSingleton<IFileRepository>(sp => new S3Repository(
+            sp.GetRequiredService<IAmazonS3>(),
+            "my-bucket-000",
+            deferredQueryDirs,
+            nonRestrictedDirs
+        ));
+
         return builder.Services;
     }
 

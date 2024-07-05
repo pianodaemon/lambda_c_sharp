@@ -25,7 +25,7 @@ public class S3Repository : IFileRepository
     private readonly HashSet<string> deferredQueryDirs;
     private readonly HashSet<string> nonRestrictedDirs;
 
-    S3Repository(IAmazonS3 s3Client, string sourceBucket, HashSet<string> deferredQueryDirs, HashSet<string> nonRestrictedDirs)
+    public S3Repository(IAmazonS3 s3Client, string sourceBucket, HashSet<string> deferredQueryDirs, HashSet<string> nonRestrictedDirs)
     {
         this.s3Client = s3Client;
         this.sourceBucket = sourceBucket;
