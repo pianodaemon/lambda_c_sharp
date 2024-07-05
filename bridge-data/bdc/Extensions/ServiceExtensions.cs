@@ -12,24 +12,14 @@ internal static class ServiceExtensions
 {
     public static IServiceCollection AddApplicationServices(this WebApplicationBuilder builder)
     {
-        HashSet<string> deferredQueryDirs = new HashSet<string>
-        {
-            "/dbbin/pending"
-        };
-
-        HashSet<string> nonRestrictedDirs = new HashSet<string>
-        {
-            "/path/to/dir2"
-        };
-
         builder.AddMassTransit();
         builder.Services.AddAWSService<IAmazonS3>(builder.Configuration.GetAWSOptions<AmazonS3Config>("AWS"));
         builder.Services.Configure<ConsumptionSources>(builder.Configuration.GetSection(ConsumptionSources.SectionName));
         builder.Services.AddSingleton<IFileRepository>(sp => new S3Repository(
             sp.GetRequiredService<IAmazonS3>(),
             sp.GetRequiredService<IOptions<ConsumptionSources>>().Value.BucketName,
-            deferredQueryDirs,
-            nonRestrictedDirs
+            sp.GetRequiredService<IOptions<ConsumptionSources>>().Value.DeferredQueryDirs,
+            sp.GetRequiredService<IOptions<ConsumptionSources>>().Value.NonRestrictedDirs
         ));
 
         return builder.Services;
