@@ -14,12 +14,12 @@ internal static class ServiceExtensions
     {
         builder.AddMassTransit();
         builder.Services.AddAWSService<IAmazonS3>(builder.Configuration.GetAWSOptions<AmazonS3Config>("AWS"));
-        builder.Services.Configure<ConsumptionSources>(builder.Configuration.GetSection(ConsumptionSources.SectionName));
+        builder.Services.Configure<ConsumptionProperties>(builder.Configuration.GetSection(ConsumptionProperties.SectionName));
         builder.Services.AddSingleton<IFileRepository>(sp => new S3Repository(
             sp.GetRequiredService<IAmazonS3>(),
-            sp.GetRequiredService<IOptions<ConsumptionSources>>().Value.BucketName,
-            sp.GetRequiredService<IOptions<ConsumptionSources>>().Value.DeferredQueryDirs,
-            sp.GetRequiredService<IOptions<ConsumptionSources>>().Value.NonRestrictedDirs
+            sp.GetRequiredService<IOptions<ConsumptionProperties>>().Value.BucketName,
+            sp.GetRequiredService<IOptions<ConsumptionProperties>>().Value.DeferredQueryDirs,
+            sp.GetRequiredService<IOptions<ConsumptionProperties>>().Value.NonRestrictedDirs
         ));
 
         return builder.Services;
@@ -27,7 +27,7 @@ internal static class ServiceExtensions
 
     public static IServiceCollection AddMassTransit(this WebApplicationBuilder builder)
     {
-        var csrcs = builder.Configuration.GetSection(ConsumptionSources.SectionName).Get<ConsumptionSources>()
+        var csrcs = builder.Configuration.GetSection(ConsumptionProperties.SectionName).Get<ConsumptionProperties>()
                     ?? throw new InvalidOperationException("Missing sources of consumption in configuration");
 
         builder.Services.AddMassTransit(mt =>
