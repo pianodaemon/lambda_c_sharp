@@ -4,6 +4,7 @@ using Microsoft.Extensions.Options;
 using System.Net.Mime;
 using BridgeDataConsumer.Console.Consumers;
 using BridgeDataConsumer.Console.Interfaces;
+using BridgeDataConsumer.Console.Options;
 
 namespace BridgeDataConsumer.Console.Extensions;
 
@@ -23,9 +24,10 @@ internal static class ServiceExtensions
 
         builder.AddMassTransit();
         builder.Services.AddAWSService<IAmazonS3>(builder.Configuration.GetAWSOptions<AmazonS3Config>("AWS"));
+        builder.Services.Configure<ConsumptionSources>(builder.Configuration.GetSection(ConsumptionSources.SectionName));
         builder.Services.AddSingleton<IFileRepository>(sp => new S3Repository(
             sp.GetRequiredService<IAmazonS3>(),
-            "my-bucket-000",
+            sp.GetRequiredService<IOptions<ConsumptionSources>>().Value.BucketName,
             deferredQueryDirs,
             nonRestrictedDirs
         ));
@@ -35,15 +37,17 @@ internal static class ServiceExtensions
 
     public static IServiceCollection AddMassTransit(this WebApplicationBuilder builder)
     {
+        var csrcs = builder.Configuration.GetSection(ConsumptionSources.SectionName).Get<ConsumptionSources>()
+                    ?? throw new InvalidOperationException("Missing sources of consumption in configuration");
+
         builder.Services.AddMassTransit(mt =>
         {
             mt.AddConsumer<MsgConsumer>();
             mt.UsingAmazonSqs((ctx, cfg) =>
             {
-
                 cfg.UseDefaultHost();
 
-                cfg.ReceiveEndpoint("queueName", e =>
+                cfg.ReceiveEndpoint(csrcs.QueueName, e =>
                 {
                     e.DefaultContentType = new ContentType("application/json");
                     e.UseRawJsonSerializer(RawSerializerOptions.AddTransportHeaders | RawSerializerOptions.CopyHeaders);

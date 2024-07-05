@@ -1,7 +1,9 @@
 namespace BridgeDataConsumer.Console.Options;
 
-public class BridgeDataConsumer
+public class ConsumptionSources
 {
-    public string SourceBucket { get; init; } = "";
-    public string SourceQueue { get; init; } = "";
+    public const string SectionName = "ConsumptionSources";
+
+    public string BucketName { get; init; } = "";
+    public string QueueName { get; init; } = "";
 }
