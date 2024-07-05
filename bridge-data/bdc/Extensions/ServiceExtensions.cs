@@ -1,3 +1,4 @@
+using Amazon.S3;
 using MassTransit;
 using Microsoft.Extensions.Options;
 using System.Net.Mime;
@@ -10,6 +11,7 @@ internal static class ServiceExtensions
     public static IServiceCollection AddApplicationServices(this WebApplicationBuilder builder)
     {
         builder.AddMassTransit();
+        builder.Services.AddAWSService<IAmazonS3>(builder.Configuration.GetAWSOptions<AmazonS3Config>("AWS:S3"));
         return builder.Services;
     }
 
