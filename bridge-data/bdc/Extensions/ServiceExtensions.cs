@@ -22,7 +22,7 @@ internal static class ServiceExtensions
         };
 
         builder.AddMassTransit();
-        builder.Services.AddAWSService<IAmazonS3>(builder.Configuration.GetAWSOptions<AmazonS3Config>("AWS:S3"));
+        builder.Services.AddAWSService<IAmazonS3>(builder.Configuration.GetAWSOptions<AmazonS3Config>("AWS"));
         builder.Services.AddSingleton<IFileRepository>(sp => new S3Repository(
             sp.GetRequiredService<IAmazonS3>(),
             "my-bucket-000",
@@ -41,6 +41,7 @@ internal static class ServiceExtensions
             mt.UsingAmazonSqs((ctx, cfg) =>
             {
 
+                cfg.UseDefaultHost();
 
                 cfg.ReceiveEndpoint("queueName", e =>
                 {
