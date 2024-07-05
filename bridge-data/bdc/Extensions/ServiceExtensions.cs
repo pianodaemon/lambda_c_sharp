@@ -46,7 +46,6 @@ internal static class ServiceExtensions
             mt.UsingAmazonSqs((ctx, cfg) =>
             {
                 cfg.UseDefaultHost();
-
                 cfg.ReceiveEndpoint(csrcs.QueueName, e =>
                 {
                     e.DefaultContentType = new ContentType("application/json");
