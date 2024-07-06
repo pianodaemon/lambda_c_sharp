@@ -39,9 +39,11 @@ public class S3Repository : IFileRepository
     {
         try
         {
+            if (string.IsNullOrEmpty(bridgePartialData.TargetPath)) throw new InvalidOperationException("Target path is null or invalid.");
             string targetPathDownload = $"{bridgePartialData.TargetPath}.download";
             Directory.CreateDirectory(Path.GetDirectoryName(targetPathDownload) ?? throw new InvalidOperationException("Target path is null or invalid."));
 
+            if (string.IsNullOrEmpty(bridgePartialData.FileKey)) throw new InvalidOperationException("File key is null or invalid.");
             await Fetch(bridgePartialData.FileKey.TrimStart('/'), targetPathDownload);
             ApplyStrategy(targetPathDownload, bridgePartialData.TargetPath);
         }
@@ -62,7 +64,7 @@ public class S3Repository : IFileRepository
     private void ApplyStrategy(string sourcePath, string targetPath)
     {
         var strategy = DetermineStrategy(targetPath);
-        logger.LogInformation($"It will be applied a file placement featuring {strategy}");
+        logger.LogInformation($"Applying a file placement featuring {strategy}");
         switch (strategy)
         {
             case Strategy.Deferral:
