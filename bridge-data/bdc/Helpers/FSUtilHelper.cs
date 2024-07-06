@@ -70,16 +70,7 @@ static class FSUtilHelper
         }
 
         string destFileName = Path.Combine(pendingDir, fileName);
-
-        int counter = 0;
-    retry:
-        if (File.Exists(destFileName))
-        {
-            counter++;
-            destFileName = Path.Combine(pendingDir, $"{fileName}.{counter}");
-            goto retry;
-        }
-
+        for (int counter = 0; File.Exists(destFileName); counter++) { destFileName = Path.Combine(pendingDir, $"{fileName}.{counter}"); }
         File.Move(tmpFileName, destFileName, true);
     }
 }
