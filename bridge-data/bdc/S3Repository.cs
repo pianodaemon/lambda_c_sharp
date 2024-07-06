@@ -20,13 +20,15 @@ public class S3Repository : IFileRepository
         Versionate
     }
 
+    private readonly ILogger<S3Repository> logger;
     private readonly IAmazonS3 s3Client;
     private readonly string sourceBucket;
     private readonly HashSet<string> deferredQueryDirs;
     private readonly HashSet<string> nonRestrictedDirs;
 
-    public S3Repository(IAmazonS3 s3Client, string sourceBucket, HashSet<string> deferredQueryDirs, HashSet<string> nonRestrictedDirs)
+    public S3Repository(ILogger<S3Repository> logger, IAmazonS3 s3Client, string sourceBucket, HashSet<string> deferredQueryDirs, HashSet<string> nonRestrictedDirs)
     {
+        this.logger = logger;
         this.s3Client = s3Client;
         this.sourceBucket = sourceBucket;
         this.deferredQueryDirs = deferredQueryDirs;
@@ -45,6 +47,7 @@ public class S3Repository : IFileRepository
         }
         catch (Exception ex)
         {
+            logger.LogError(ex, "Error downloading or saving file.");
             throw;
         }
     }
@@ -58,7 +61,9 @@ public class S3Repository : IFileRepository
 
     private void ApplyStrategy(string sourcePath, string targetPath)
     {
-        switch (DetermineStrategy(targetPath))
+        var strategy = DetermineStrategy(targetPath);
+        logger.LogInformation($"It will be applied a file placement featuring {strategy}");
+        switch (strategy)
         {
             case Strategy.Deferral:
                 FSUtilHelper.MoveQuery(sourcePath, Path.GetDirectoryName(targetPath));
