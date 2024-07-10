@@ -21,14 +21,16 @@ public class S3Repository : IFileRepository
     }
 
     private readonly ILogger<S3Repository> logger;
+    private readonly IFileMgmt fileMgmt;
     private readonly IAmazonS3 s3Client;
     private readonly string sourceBucket;
     private readonly HashSet<string> deferredQueryDirs;
     private readonly HashSet<string> nonRestrictedDirs;
 
-    public S3Repository(ILogger<S3Repository> logger, IAmazonS3 s3Client, string sourceBucket, HashSet<string> deferredQueryDirs, HashSet<string> nonRestrictedDirs)
+    public S3Repository(ILogger<S3Repository> logger, IFileMgmt fileMgmt, IAmazonS3 s3Client, string sourceBucket, HashSet<string> deferredQueryDirs, HashSet<string> nonRestrictedDirs)
     {
         this.logger = logger;
+        this.fileMgmt = fileMgmt;
         this.s3Client = s3Client;
         this.sourceBucket = sourceBucket;
         this.deferredQueryDirs = deferredQueryDirs;
@@ -64,18 +66,18 @@ public class S3Repository : IFileRepository
     private void ApplyStrategy(string sourcePath, string targetPath)
     {
         var strategy = DetermineStrategy(targetPath);
-        logger.LogInformation($"Applying a file placement featuring {strategy}");
+        logger.LogInformation("Applying a file placement featuring {strategy}", strategy);
         switch (strategy)
         {
             case Strategy.Deferral:
-                FSUtilHelper.MoveQuery(sourcePath, Path.GetDirectoryName(targetPath));
+                fileMgmt.MoveQuery(sourcePath, Path.GetDirectoryName(targetPath));
                 break;
             case Strategy.Create:
             case Strategy.Overwrite:
-                File.Move(sourcePath, targetPath, true);
+                fileMgmt.MoveWithOverwrite(sourcePath, targetPath);
                 break;
             case Strategy.Versionate:
-                FSUtilHelper.MoveFileUnique(sourcePath, targetPath);
+                fileMgmt.MoveFileUnique(sourcePath, targetPath);
                 break;
         }
     }

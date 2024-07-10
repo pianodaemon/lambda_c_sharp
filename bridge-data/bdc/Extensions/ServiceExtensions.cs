@@ -17,6 +17,7 @@ internal static class ServiceExtensions
         builder.Services.Configure<ConsumptionProperties>(builder.Configuration.GetSection(ConsumptionProperties.SectionName));
         builder.Services.AddSingleton<IFileRepository>(sp => new S3Repository(
             sp.GetRequiredService<ILogger<S3Repository>>(),
+            new LegacyFileMgmt(),
             sp.GetRequiredService<IAmazonS3>(),
             sp.GetRequiredService<IOptions<ConsumptionProperties>>().Value.BucketName,
             sp.GetRequiredService<IOptions<ConsumptionProperties>>().Value.DeferredQueryDirs,

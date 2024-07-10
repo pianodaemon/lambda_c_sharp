@@ -3,7 +3,7 @@ using BridgeDataConsumer.Console.Interfaces;
 
 namespace BridgeDataConsumer.Console;
 
-public class FileMgmt : IFileMgmt
+public class LegacyFileMgmt : IFileMgmt
 {
     public void MoveFileUnique(string sourcePath, string destinationPath)
     {
@@ -13,5 +13,10 @@ public class FileMgmt : IFileMgmt
     public void MoveQuery(string tmpFileName, string pendingDir)
     {
         FSUtilHelper.MoveQuery(tmpFileName, pendingDir);
+    }
+
+    public void MoveWithOverwrite(string sourcePath, string destinationPath)
+    {
+        File.Move(sourcePath, destinationPath, true);
     }
 }
