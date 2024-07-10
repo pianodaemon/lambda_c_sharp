@@ -70,7 +70,7 @@ public class S3Repository : IFileRepository
         switch (strategy)
         {
             case Strategy.Deferral:
-                fileMgmt.MoveQuery(sourcePath, Path.GetDirectoryName(targetPath));
+                fileMgmt.MoveQuery(sourcePath, Path.GetDirectoryName(targetPath) ?? throw new InvalidOperationException("Target path is null or invalid."));
                 break;
             case Strategy.Create:
             case Strategy.Overwrite:
