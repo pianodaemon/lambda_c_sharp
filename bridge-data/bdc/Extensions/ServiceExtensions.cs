@@ -1,7 +1,6 @@
 using Amazon.S3;
 using MassTransit;
 using Microsoft.Extensions.Options;
-using System.Net.Mime;
 using BridgeDataConsumer.Console.Consumers;
 using BridgeDataConsumer.Console.Interfaces;
 using BridgeDataConsumer.Console.Options;
@@ -12,24 +11,25 @@ internal static class ServiceExtensions
 {
     public static IServiceCollection AddApplicationServices(this WebApplicationBuilder builder)
     {
-        builder.AddMassTransit();
         builder.Services.AddAWSService<IAmazonS3>(builder.Configuration.GetAWSOptions<AmazonS3Config>("AWS"));
-        builder.Services.Configure<ConsumptionProperties>(builder.Configuration.GetSection(ConsumptionProperties.SectionName));
+        builder.Services.Configure<MessageBus>(builder.Configuration.GetSection(MessageBus.SectionName));
         builder.Services.AddSingleton<IFileRepository>(sp => new S3Repository(
-            sp.GetRequiredService<ILogger<S3Repository>>(),
-            new LegacyFileMgmt(),
             sp.GetRequiredService<IAmazonS3>(),
-            sp.GetRequiredService<IOptions<ConsumptionProperties>>().Value.BucketName,
-            sp.GetRequiredService<IOptions<ConsumptionProperties>>().Value.DeferredQueryDirs,
-            sp.GetRequiredService<IOptions<ConsumptionProperties>>().Value.NonRestrictedDirs
+            sp.GetRequiredService<IOptions<MessageBus>>().Value.BucketName
         ));
+        builder.Services.AddSingleton<IFileManagement>(sp => new LegacyFileManagement(
+            sp.GetRequiredService<ILogger<LegacyFileManagement>>(),
+            sp.GetRequiredService<IOptions<MessageBus>>().Value.DeferredQueryDirs,
+            sp.GetRequiredService<IOptions<MessageBus>>().Value.NonRestrictedDirs
+        )); 
+        builder.AddMassTransit();
 
         return builder.Services;
     }
 
     public static IServiceCollection AddMassTransit(this WebApplicationBuilder builder)
     {
-        var csrcs = builder.Configuration.GetSection(ConsumptionProperties.SectionName).Get<ConsumptionProperties>()
+        var csrcs = builder.Configuration.GetSection(MessageBus.SectionName).Get<MessageBus>()
                     ?? throw new InvalidOperationException("Missing sources of consumption in configuration");
 
         builder.Services.AddMassTransit(mt =>
@@ -40,9 +40,9 @@ internal static class ServiceExtensions
                 cfg.UseDefaultHost();
                 cfg.ReceiveEndpoint(csrcs.QueueName, e =>
                 {
-                    e.DefaultContentType = new ContentType("application/json");
-                    e.UseRawJsonSerializer(RawSerializerOptions.AddTransportHeaders | RawSerializerOptions.CopyHeaders);
                     e.ConfigureConsumeTopology = false;
+                    e.ThrowOnSkippedMessages();
+                    e.RethrowFaultedMessages();
                     e.ConfigureConsumer<MsgConsumer>(ctx);
                 });
             });
