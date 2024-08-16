@@ -1,7 +1,7 @@
 using Amazon.S3;
 using MassTransit;
 using Serilog;
-using TestPublisherService.Extensions;
+using BridgeDataConsumer.Tests.Extensions;
 using BridgeDataConsumer.Console.Models;
 
 Log.Logger = new LoggerConfiguration().WriteTo.Console().CreateBootstrapLogger();
