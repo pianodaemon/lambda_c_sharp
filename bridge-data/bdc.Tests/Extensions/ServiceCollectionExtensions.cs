@@ -2,7 +2,7 @@ using MassTransit;
 using BridgeDataConsumer.Console.Options;
 using BridgeDataConsumer.Console.Models;
 
-namespace BridgeDataConsumer.Test.Extensions;
+namespace BridgeDataConsumer.Tests.Extensions;
 
 public static class ServiceCollectionExtensions {
 
