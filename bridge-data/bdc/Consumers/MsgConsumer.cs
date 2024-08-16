@@ -1,28 +1,15 @@
-using System;
-using System.IO;
-using System.Collections.Generic;
 using BridgeDataConsumer.Console.Models;
 using MassTransit;
-using Amazon.S3;
-using Amazon.S3.Model;
 using BridgeDataConsumer.Console.Interfaces;
 
 namespace BridgeDataConsumer.Console.Consumers;
 
-public class MsgConsumer : IConsumer<BridgePartialData>
+public class MsgConsumer(ILogger<MsgConsumer> logger, IFileRepository repo, IFileManagement fileMgmt) : IConsumer<MovedToBridgeData>
 {
-    private readonly ILogger<MsgConsumer> logger;
-    private readonly IFileRepository fileRepository;
-
-    public MsgConsumer(ILogger<MsgConsumer> logger, IFileRepository fileRepository)
-    {
-        this.logger = logger;
-        this.fileRepository = fileRepository;
-    }
-
-    public async Task Consume(ConsumeContext<BridgePartialData> ctx)
+    public async Task Consume(ConsumeContext<MovedToBridgeData> ctx)
     {
         logger.LogInformation("Consuming message");
-        await fileRepository.DownloadAsync(ctx.Message);
+        string targetPathDownload = await repo.DoPlacementAsync(ctx.Message);
+        fileMgmt.ApplyStrategy(targetPathDownload, ctx.Message.TargetPath);
     }
 }
