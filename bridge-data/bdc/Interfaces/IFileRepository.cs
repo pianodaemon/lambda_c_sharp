@@ -4,5 +4,5 @@ namespace BridgeDataConsumer.Console.Interfaces;
 
 public interface IFileRepository
 {
-    Task DownloadAsync(BridgePartialData bridgePartialData);
+    Task<string> DoPlacementAsync(MovedToBridgeData movedToBridgeData);
 }
