@@ -8,7 +8,7 @@ public static class ServiceCollectionExtensions {
 
   public static IServiceCollection AddMassTransitServices(this IServiceCollection services, IConfiguration configuration) {
 
-    var messageBusOptions = configuration.GetSection(ConsumptionProperties.SectionName).Get<ConsumptionProperties> () ??
+    var messageBusOptions = configuration.GetSection(MessageBus.SectionName).Get<MessageBus> () ??
       throw new InvalidOperationException("Missing MessageBus configuration");
 
     services.AddMassTransit(mt => {
