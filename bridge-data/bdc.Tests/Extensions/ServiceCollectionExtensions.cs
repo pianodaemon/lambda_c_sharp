@@ -14,8 +14,8 @@ public static class ServiceCollectionExtensions {
     services.AddMassTransit(mt => {
       mt.UsingAmazonSqs((context, cfg) => {
         cfg.UseDefaultHost();
-        cfg.Message<BridgePartialData>(x => x.SetEntityName(messageBusOptions.QueueName));
-        cfg.Publish<BridgePartialData>();
+        cfg.Message<MovedToBridgeData>(x => x.SetEntityName(messageBusOptions.QueueName));
+        cfg.Publish<MovedToBridgeData>();
       });
     });
 
