@@ -1,4 +1,5 @@
 using System.Text.RegularExpressions;
+using BridgeDataConsumer.Console.Regexes;
 
 namespace BridgeDataConsumer.Console.Helpers;
 
@@ -15,7 +16,10 @@ static class FSUtilHelper
     public static void MoveFileUnique(string sourcePath, string destinationPath)
     {
         RenameFiles(destinationPath);
-        if (File.Exists(sourcePath)) File.Move(sourcePath, destinationPath);
+        if (File.Exists(sourcePath))
+        {
+            File.Move(sourcePath, destinationPath);
+        }
     }
 
     private static void RenameFiles(string filePath)
@@ -24,8 +28,7 @@ static class FSUtilHelper
 
         string prefix;
         int digits;
-        Regex regex = new Regex(@"^(.+)\.(\d+)$");
-        Match match = regex.Match(filePath);
+        Match match = RegexContainer.ExpectedFileNameRegex().Match(filePath);
 
         if (match.Success)
         {
@@ -41,7 +44,11 @@ static class FSUtilHelper
         digits++;
         string newname = $"{prefix}.{digits}";
 
-        if (File.Exists(newname))RenameFiles(newname);
+        if (File.Exists(newname))
+        {
+            RenameFiles(newname);                          
+        }
+
         File.Move(filePath, newname);
     }
 
