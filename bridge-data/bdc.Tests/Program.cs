@@ -17,7 +17,7 @@ try {
     var app = builder.Build();
 
     app.MapGet("/publish-test-message", async(IPublishEndpoint publisher) => {
-        var message = new BridgePartialData{FileKey = "/host", TargetPath = "/tmp/hosts_copy.txt"};
+        var message = new BridgePartialData{FileKey = "/hosts", TargetPath = "/tmp/hosts_copy.txt"};
         await publisher.Publish(message, x => { x.SetGroupId("myMessageGroup"); });
         return Results.Ok("Test message sent successfully");
     });
