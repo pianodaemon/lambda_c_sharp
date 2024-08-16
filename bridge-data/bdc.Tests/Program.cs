@@ -10,7 +10,6 @@ try {
     var builder = WebApplication.CreateBuilder(args);
 
     builder.Configuration.AddJsonFile("appsettings.json", optional: false, reloadOnChange: true).AddEnvironmentVariables();
-
     builder.Services.AddAWSService<IAmazonS3>(builder.Configuration.GetAWSOptions<AmazonS3Config>("AWS"));
     builder.Services.AddMassTransitServices(builder.Configuration);
 
@@ -21,7 +20,6 @@ try {
         await publisher.Publish(message, x => { x.SetGroupId("myMessageGroup"); });
         return Results.Ok("Test message sent successfully");
     });
-
     app.Run();
 } catch (Exception ex) {
     Log.Fatal(ex, "Application terminated unexpectedly");
