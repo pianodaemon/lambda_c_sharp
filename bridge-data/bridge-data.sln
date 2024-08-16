@@ -3,9 +3,9 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 17
 VisualStudioVersion = 17.0.31903.59
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "pocconsumer", "pocconsumer\pocconsumer.csproj", "{F0232A53-0896-44CF-AB0D-FC213C5A3882}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "BridgeDataConsumer.Console", "bdc\BridgeDataConsumer.Console.csproj", "{F0232A53-0896-44CF-AB0D-FC213C5A3882}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "pocconsumer.Tests", "pocconsumer.Tests\pocconsumer.Tests.csproj", "{E8D71CB0-26E4-41CF-BAF2-01C4E0F03CC5}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "BridgeDataConsumer.Tests", "bdc.Tests\BridgeDataConsumer.Tests.csproj", "{E8D71CB0-26E4-41CF-BAF2-01C4E0F03CC5}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
