@@ -49,7 +49,7 @@ public class LegacyFileManagement(ILogger<LegacyFileManagement> logger, HashSet<
 
     private Strategy DetermineStrategy(string targetPath)
     {
-        if (deferredQueryDirs.Contains(Path.GetDirectoryName(targetPath) ?? throw new InvalidOperationException("Target path is null or invalid.")))
+        if (IsContained(targetPath, deferredQueryDirs))
         {
             return Strategy.Deferral;
         }
@@ -59,9 +59,21 @@ public class LegacyFileManagement(ILogger<LegacyFileManagement> logger, HashSet<
             return Strategy.Create;
         }
 
-        string directory = Path.GetDirectoryName(targetPath) ?? throw new InvalidOperationException("Target path is null or invalid.");
-        return nonRestrictedDirs != null && nonRestrictedDirs.Contains(directory)
+        return nonRestrictedDirs != null && IsContained(targetPath, nonRestrictedDirs)
             ? Strategy.Overwrite
             : Strategy.Versionate;
+    }
+
+    static bool IsContained(string targetPath, HashSet<string> pathSet)
+    {
+        string targetPathDir = Path.GetDirectoryName(targetPath) ?? throw new InvalidOperationException("Target path is null or invalid.");
+        foreach (var memberDir in pathSet)
+        {
+            if (targetPathDir.StartsWith(memberDir))
+            {
+                return true;
+            }
+        }
+        return false;
     }
 }
