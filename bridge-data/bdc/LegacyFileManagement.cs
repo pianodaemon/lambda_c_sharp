@@ -5,6 +5,7 @@ namespace BridgeDataConsumer.Console;
 
 public class LegacyFileManagement(ILogger<LegacyFileManagement> logger, HashSet<string> deferredQueryDirs, HashSet<string> nonRestrictedDirs): IFileManagement
 {
+    private static readonly object mtx = new object();
     private enum Strategy
     {
         Deferral,
@@ -30,20 +31,23 @@ public class LegacyFileManagement(ILogger<LegacyFileManagement> logger, HashSet<
 
     public void ApplyStrategy(string sourcePath, string targetPath)
     {
-        var strategy = DetermineStrategy(targetPath);
-        logger.LogInformation("Applying a file placement featuring {strategy}", strategy);
-        switch (strategy)
+        lock (mtx)
         {
-            case Strategy.Deferral:
-                MoveQuery(sourcePath, Path.GetDirectoryName(targetPath) ?? throw new InvalidOperationException("Target path is null or invalid."));
-                break;
-            case Strategy.Create:
-            case Strategy.Overwrite:
-                MoveWithOverwrite(sourcePath, targetPath);
-                break;
-            case Strategy.Versionate:
-                MoveFileUnique(sourcePath, targetPath);
-                break;
+            var strategy = DetermineStrategy(targetPath);
+            logger.LogInformation("Applying a file placement featuring {strategy}", strategy);
+            switch (strategy)
+            {
+                case Strategy.Deferral:
+                    MoveQuery(sourcePath, Path.GetDirectoryName(targetPath) ?? throw new InvalidOperationException("Target path is null or invalid."));
+                    break;
+                case Strategy.Create:
+                case Strategy.Overwrite:
+                    MoveWithOverwrite(sourcePath, targetPath);
+                    break;
+                case Strategy.Versionate:
+                    MoveFileUnique(sourcePath, targetPath);
+                    break;
+            }
         }
     }
 
